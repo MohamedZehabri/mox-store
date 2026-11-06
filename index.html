@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#17251f">
+  <title>MOX — Wear Your Identity</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#"><span class="brand-mark">M</span><span id="store-name">MOX</span></a>
+  <nav><a href="#products">التشكيلة</a><a href="#about">عن MOX</a><a href="#contact">تواصل معنا</a></nav>
+  <button class="cart-button" id="open-cart">السلة <span id="cart-count">0</span></button>
+</header>
+<section class="hero">
+  <div class="hero-copy">
+    <span class="eyebrow">MOX / THE NEW STANDARD</span>
+    <h1>أناقتك تبدأ<br><em>من اختيارك</em></h1>
+    <p>قطع مختارة بعناية، بتفاصيل هادئة وحضور لا يحتاج إلى مبالغة. اكتشف أسلوبك مع MOX.</p>
+    <a class="primary-link" href="#products">اكتشف التشكيلة <span>←</span></a>
+    <div class="trust-row"><span>✓ الدفع عند الاستلام</span><span>✓ توصيل إلى مختلف ولايات الجزائر</span></div>
+  </div>
+  <div class="hero-art"><div class="hero-circle"></div><div class="hero-card"><span>LESS, BUT BETTER</span><strong>DA</strong><small>YOUR STYLE. YOUR RULES.</small></div><div class="floating-tag">MOX — ALGERIA</div></div>
+</section>
+<main>
+  <section class="section-head" id="products"><div><span class="eyebrow">THE MOX EDIT</span><h2>قطع تستحق مكاناً في خزانتك</h2></div><div class="search-wrap"><input id="search" type="search" placeholder="ابحث عن قطعة..."></div></section>
+  <div class="category-row" id="categories"><button class="category active" data-category="الكل">الكل</button></div>
+  <div class="product-grid" id="product-grid"><div class="loading">جارٍ تحميل المنتجات...</div></div>
+  <section class="about" id="about"><div><span class="eyebrow">لماذا نحن؟</span><h2>أسلوب واضح<br>وتفاصيل مدروسة</h2></div><p>MOX علامة أزياء تحتفي بالبساطة والثقة. اختر قطعتك، أرسل طلبك، وسنتواصل معك لتأكيد المقاس والتوصيل قبل الشحن.</p></section>
+</main>
+<footer id="contact"><div class="brand"><span class="brand-mark">M</span><span id="footer-store-name">MOX</span></div><p>MOX — Wear Your Identity. الدفع عند الاستلام متاح بعد تأكيد الطلب.</p><small>© <span id="year"></span> جميع الحقوق محفوظة</small><a href="admin.html" class="admin-link">إدارة المتجر</a></footer>
+
+<div class="overlay" id="cart-overlay"></div>
+<aside class="drawer" id="cart-drawer" aria-label="سلة المشتريات">
+  <div class="drawer-head"><h3>سلة المشتريات</h3><button class="icon-button" id="close-cart">✕</button></div>
+  <div id="cart-items" class="cart-items"><p class="muted">السلة فارغة حالياً.</p></div>
+  <div class="cart-total"><span>المجموع</span><strong id="cart-total">0 دج</strong></div>
+  <button class="primary-button full" id="go-checkout">إتمام الطلب</button>
+</aside>
+
+<div class="modal-backdrop" id="checkout-modal">
+  <div class="modal">
+    <div class="drawer-head"><div><span class="eyebrow">خطوة أخيرة</span><h3>معلومات التوصيل</h3></div><button class="icon-button" id="close-checkout">✕</button></div>
+    <form id="checkout-form">
+      <div class="form-grid">
+        <label>الاسم واللقب<input name="customer_name" required minlength="3" placeholder="اكتب اسمك الكامل"></label>
+        <label>رقم الهاتف<input name="phone" required inputmode="tel" pattern="[0-9+ ]{9,15}" placeholder="05 أو 06 أو 07"></label>
+        <label>الولاية<select name="wilaya" id="wilaya" required><option value="">اختر الولاية</option></select></label>
+        <label>البلدية<input name="commune" required placeholder="اختر أو اكتب اسم البلدية" list="communes-list"><datalist id="communes-list"></datalist></label>
+        <label class="wide">العنوان بالتفصيل<textarea name="address" required rows="2" placeholder="الحي، الشارع، أقرب نقطة..."></textarea></label>
+        <label class="wide">ملاحظة (اختياري)<textarea name="note" rows="2" placeholder="معلومات إضافية حول التوصيل"></textarea></label>
+      </div>
+      <div class="checkout-summary"><span>مجموع المنتجات</span><strong id="checkout-total">0 دج</strong></div>
+      <p class="hint">الدفع نقداً عند استلام الطلب. سيتم التواصل معك لتأكيد الطلب وتكلفة التوصيل قبل الشحن.</p>
+      <button class="primary-button full" type="submit" id="submit-order">تأكيد الطلب</button>
+      <p id="checkout-message" class="form-message"></p>
+    </form>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>

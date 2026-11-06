@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MOX — Admin</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"><style>
+.admin-wrap{max-width:1100px;margin:45px auto;padding:0 20px}.admin-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}.admin-card{border:1px solid var(--line);border-radius:12px;padding:22px;margin:18px 0;background:white}.admin-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.admin-grid label{font-size:12px;font-weight:700;display:flex;flex-direction:column;gap:6px}.admin-grid .wide{grid-column:1/-1}.admin-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}.secondary{border:1px solid var(--line);background:white;padding:10px 15px;border-radius:7px;cursor:pointer}.danger{color:#a33}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}th,td{text-align:right;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-weight:700}.status-select{padding:6px;border:1px solid var(--line);border-radius:6px}.hidden{display:none!important}.login{max-width:420px;margin:90px auto}.notice{background:#fff6e8;padding:12px;border-radius:8px;color:#79552c;font-size:12px;line-height:1.8}.admin-product{display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid var(--line);padding:12px 0}@media(max-width:600px){.admin-grid{grid-template-columns:1fr}.admin-grid .wide{grid-column:auto}.admin-top{align-items:flex-start;gap:10px;flex-direction:column}}
+</style></head>
+<body><header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">M</span><span>MOX</span></a><a href="index.html">العودة للمتجر ←</a></header>
+<div class="admin-wrap">
+ <section id="login-panel" class="admin-card login"><span class="eyebrow">منطقة خاصة</span><h2>تسجيل دخول الإدارة</h2><p class="muted">سجّل الدخول بالبريد وكلمة المرور التي أنشأتها في Supabase.</p><form id="login-form"><label>البريد الإلكتروني<input class="admin-input" name="email" type="email" required></label><br><label>كلمة المرور<input class="admin-input" name="password" type="password" required></label><br><button class="primary-button full">دخول</button><p id="login-msg" class="form-message"></p></form><p class="notice">لأمان المتجر، لا تشارك بيانات دخول الإدارة مع أي شخص.</p></section>
+ <section id="dashboard" class="hidden">
+  <div class="admin-top"><div><span class="eyebrow">لوحة التحكم</span><h1>إدارة المتجر</h1></div><button class="secondary" id="logout">تسجيل الخروج</button></div>
+  <div class="admin-card"><h2>إضافة منتج جديد</h2><form id="product-form" class="admin-grid">
+   <label>اسم المنتج<input name="name" required></label><label>السعر بالدينار (DA)<input name="price" type="number" min="0" required></label>
+   <label>التصنيف<input name="category" placeholder="مثلاً: ملابس"></label><label>رابط صورة المنتج<input name="image_url" type="url" placeholder="https://..."></label>
+   <label class="wide">وصف المنتج<textarea name="description" rows="2"></textarea></label>
+   <div class="wide admin-actions"><button class="primary-button">إضافة المنتج</button></div><p id="product-msg" class="form-message wide"></p>
+  </form></div>
+  <div class="admin-card"><h2>المنتجات الحالية</h2><div id="admin-products"></div></div>
+  <div class="admin-card"><h2>طلبات الزبائن</h2><div class="table-wrap"><table><thead><tr><th>التاريخ</th><th>الزبون</th><th>الهاتف</th><th>العنوان</th><th>الطلب</th><th>المجموع</th><th>الحالة</th></tr></thead><tbody id="orders-body"></tbody></table></div></div>
+ </section>
+</div><div class="toast" id="toast"></div><script type="module" src="admin.js"></script></body></html>
