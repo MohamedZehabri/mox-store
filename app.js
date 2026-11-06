@@ -21,7 +21,8 @@ function renderCart(){
   $("#checkout-total").textContent=$("#cart-total").textContent;updateShipping();
 }
 function shippingFee(){const w=$("#wilaya").value,r=rates[w];if(!w||!r||r.is_active===false)return null;const v=$("#delivery-type").value==="desk"?r.desk_price:r.home_price;return v==null?null:Number(v)}
-function updateShipping(){const sub=cart.reduce((s,x)=>s+x.price*x.qty,0),fee=shippingFee();$("#checkout-shipping").textContent=!$("#wilaya").value?"اختر الولاية":fee===null?"غير متوفر لهذه الوجهة":fee===0?"مجاني":money(fee);$("#checkout-grand").textContent=money(sub+(fee||0))}
+function syncDelivery(){const r=rates[$("#wilaya").value],sel=$("#delivery-type"),h=sel.querySelector('[value="home"]'),d=sel.querySelector('[value="desk"]');const lbl=(t,p)=>p==null?t+" — غير متوفر":t+" — "+(Number(p)===0?"مجاني":money(p));h.textContent=r?lbl("إلى المنزل",r.home_price):"إلى المنزل";d.textContent=r?lbl("إلى المكتب (Stop Desk)",r.desk_price):"إلى المكتب (Stop Desk)";h.disabled=!!r&&r.home_price==null;d.disabled=!!r&&r.desk_price==null;if(sel.value==="desk"&&d.disabled&&!h.disabled)sel.value="home";if(sel.value==="home"&&h.disabled&&!d.disabled)sel.value="desk"}
+function updateShipping(){const sub=cart.reduce((s,x)=>s+x.price*x.qty,0);syncDelivery();const fee=shippingFee();$("#checkout-shipping").textContent=!$("#wilaya").value?"اختر الولاية":fee===null?"غير متوفر لهذه الوجهة":fee===0?"مجاني":money(fee);$("#checkout-grand").textContent=money(sub+(fee||0))}
 async function loadRates(){if(!supabase)return;const {data}=await supabase.from("shipping_rates").select("*");rates=Object.fromEntries((data||[]).map(r=>[r.wilaya,r]));updateShipping()}
 function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function renderCategories(){

@@ -49,6 +49,7 @@
       <div class="form-grid">
         <label>الاسم واللقب<input name="customer_name" required minlength="3" placeholder="اكتب اسمك الكامل"></label>
         <label>رقم الهاتف<input name="phone" required inputmode="tel" pattern="[0-9+ ]{9,15}" placeholder="05 أو 06 أو 07"></label>
+        <label>الدولة<input value="الجزائر" readonly style="background:#f6f4f0"></label>
         <label>الولاية<select name="wilaya" id="wilaya" required><option value="">اختر الولاية</option></select></label>
         <label>نوع التوصيل<select name="delivery_type" id="delivery-type" required><option value="home">إلى المنزل</option><option value="desk">إلى المكتب (Stop Desk)</option></select></label>
         <label>البلدية<input name="commune" required placeholder="اختر أو اكتب اسم البلدية" list="communes-list"><datalist id="communes-list"></datalist></label>
