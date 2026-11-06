@@ -7,6 +7,7 @@ const $ = (s) => document.querySelector(s);
 let products = [];
 let cart = JSON.parse(localStorage.getItem("dz_cart") || "[]");
 let selectedCategory = "الكل";
+let rates = {};
 const wilayas = ["أدرار","الشلف","الأغواط","أم البواقي","باتنة","بجاية","بسكرة","بشار","البليدة","البويرة","تمنراست","تبسة","تلمسان","تيارت","تيزي وزو","الجزائر","الجلفة","جيجل","سطيف","سعيدة","سكيكدة","سيدي بلعباس","عنابة","قالمة","قسنطينة","المدية","مستغانم","المسيلة","معسكر","ورقلة","وهران","البيض","إليزي","برج بوعريريج","بومرداس","الطارف","تندوف","تيسمسيلت","الوادي","خنشلة","سوق أهراس","تيبازة","ميلة","عين الدفلى","النعامة","عين تموشنت","غرداية","غليزان","تيميمون","برج باجي مختار","أولاد جلال","بني عباس","عين صالح","عين قزام","تقرت","جانت","المغير","المنيعة","أفلو","بريكة","قصر الشلالة","مسعد","عين وسارة","بوسعادة","الأبيض سيدي الشيخ","القنطرة","بئر العاتر","قصر البخاري","العريشة"];
 $("#store-name").textContent = STORE_NAME; $("#footer-store-name").textContent = STORE_NAME; $("#year").textContent = new Date().getFullYear();
 $("#wilaya").innerHTML += wilayas.map((w,i)=>`<option value="${w}">${String(i+1).padStart(2,"0")} - ${w}</option>`).join("");
@@ -17,8 +18,11 @@ function renderCart(){
   $("#cart-count").textContent=cart.reduce((s,x)=>s+x.qty,0);
   $("#cart-items").innerHTML=cart.length?cart.map(x=>`<div class="cart-line"><div><strong>${escapeHtml(x.name)}</strong><small>${money(x.price)} × ${x.qty}</small></div><div class="qty-controls"><button data-dec="${x.id}">−</button><span>${x.qty}</span><button data-inc="${x.id}">+</button></div></div>`).join(""):'<p class="muted">السلة فارغة حالياً.</p>';
   $("#cart-total").textContent=money(cart.reduce((s,x)=>s+x.price*x.qty,0));
-  $("#checkout-total").textContent=$("#cart-total").textContent;
+  $("#checkout-total").textContent=$("#cart-total").textContent;updateShipping();
 }
+function shippingFee(){const w=$("#wilaya").value,r=rates[w];if(!w||!r||r.is_active===false)return null;const v=$("#delivery-type").value==="desk"?r.desk_price:r.home_price;return v==null?null:Number(v)}
+function updateShipping(){const sub=cart.reduce((s,x)=>s+x.price*x.qty,0),fee=shippingFee();$("#checkout-shipping").textContent=!$("#wilaya").value?"اختر الولاية":fee===null?"غير متوفر لهذه الوجهة":fee===0?"مجاني":money(fee);$("#checkout-grand").textContent=money(sub+(fee||0))}
+async function loadRates(){if(!supabase)return;const {data}=await supabase.from("shipping_rates").select("*");rates=Object.fromEntries((data||[]).map(r=>[r.wilaya,r]));updateShipping()}
 function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function renderCategories(){
  const cats=["الكل",...new Set(products.map(p=>p.category||"عام"))];
@@ -48,9 +52,10 @@ $("#close-checkout").onclick=()=>$("#checkout-modal").classList.remove("show");
 $("#checkout-modal").addEventListener("click",e=>{if(e.target.id==="checkout-modal")$("#checkout-modal").classList.remove("show")});
 $("#checkout-form").addEventListener("submit",async e=>{
  e.preventDefault();if(!cart.length)return;
+ if(supabase&&shippingFee()===null){$("#checkout-message").textContent="التوصيل غير متوفر لهذه الولاية أو هذا النوع حالياً. جرّب نوعاً آخر أو تواصل معنا.";return}
  const btn=$("#submit-order");btn.disabled=true;btn.textContent="جارٍ إرسال الطلب...";
  const fd=new FormData(e.currentTarget);
- const payload={customer_name:fd.get("customer_name").trim(),phone:fd.get("phone").trim(),wilaya:fd.get("wilaya"),commune:fd.get("commune").trim(),address:fd.get("address").trim(),note:fd.get("note").trim(),items:cart.map(x=>({product_id:x.id,name:x.name,price:x.price,quantity:x.qty})),total:0,status:"جديد"};
+ const payload={customer_name:fd.get("customer_name").trim(),phone:fd.get("phone").trim(),wilaya:fd.get("wilaya"),commune:fd.get("commune").trim(),address:fd.get("address").trim(),note:fd.get("note").trim(),items:cart.map(x=>({product_id:x.id,name:x.name,price:x.price,quantity:x.qty})),delivery_type:fd.get("delivery_type"),total:0,status:"جديد"};
  try{
   if(!supabase)throw new Error("NOT_CONFIGURED");
   const {error}=await supabase.from("orders").insert(payload);if(error)throw error;
@@ -58,4 +63,5 @@ $("#checkout-form").addEventListener("submit",async e=>{
  }catch(err){console.error(err);$("#checkout-message").textContent=err.message==="NOT_CONFIGURED"?"المتجر في وضع المعاينة. اربط قاعدة البيانات لتفعيل استقبال الطلبات.":"تعذر إرسال الطلب. تحقق من الاتصال وحاول مجدداً."}
  finally{btn.disabled=false;btn.textContent="تأكيد الطلب"}
 });
-renderCart();loadProducts();
+$("#wilaya").addEventListener("change",updateShipping);$("#delivery-type").addEventListener("change",updateShipping);
+renderCart();loadProducts();loadRates();

@@ -50,11 +50,14 @@
         <label>الاسم واللقب<input name="customer_name" required minlength="3" placeholder="اكتب اسمك الكامل"></label>
         <label>رقم الهاتف<input name="phone" required inputmode="tel" pattern="[0-9+ ]{9,15}" placeholder="05 أو 06 أو 07"></label>
         <label>الولاية<select name="wilaya" id="wilaya" required><option value="">اختر الولاية</option></select></label>
+        <label>نوع التوصيل<select name="delivery_type" id="delivery-type" required><option value="home">إلى المنزل</option><option value="desk">إلى المكتب (Stop Desk)</option></select></label>
         <label>البلدية<input name="commune" required placeholder="اختر أو اكتب اسم البلدية" list="communes-list"><datalist id="communes-list"></datalist></label>
         <label class="wide">العنوان بالتفصيل<textarea name="address" required rows="2" placeholder="الحي، الشارع، أقرب نقطة..."></textarea></label>
         <label class="wide">ملاحظة (اختياري)<textarea name="note" rows="2" placeholder="معلومات إضافية حول التوصيل"></textarea></label>
       </div>
       <div class="checkout-summary"><span>مجموع المنتجات</span><strong id="checkout-total">0 دج</strong></div>
+      <div class="checkout-summary"><span>التوصيل</span><strong id="checkout-shipping">اختر الولاية</strong></div>
+      <div class="checkout-summary"><span>المجموع الكلي</span><strong id="checkout-grand">0 دج</strong></div>
       <p class="hint">الدفع نقداً عند استلام الطلب. سيتم التواصل معك لتأكيد الطلب وتكلفة التوصيل قبل الشحن.</p>
       <button class="primary-button full" type="submit" id="submit-order">تأكيد الطلب</button>
       <p id="checkout-message" class="form-message"></p>
