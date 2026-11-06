@@ -65,16 +65,4 @@ $("#checkout-form").addEventListener("submit",async e=>{
  finally{btn.disabled=false;btn.textContent="تأكيد الطلب"}
 });
 $("#wilaya").addEventListener("change",updateShipping);$("#delivery-type").addEventListener("change",updateShipping);
-async function loadHeroVideo(){
- if(!supabase)return;
- const {data,error}=await supabase.from("hero_videos").select("*").eq("is_active",true).order("sort_order",{ascending:true}).order("created_at",{ascending:false});
- if(error||!data||!data.length)return;
- const art=document.querySelector(".hero-art");if(!art)return;
- art.style.height="auto";
- art.innerHTML='<video class="hero-video" autoplay muted playsinline preload="metadata"></video>';
- const v=art.querySelector("video");let i=0;
- const play=()=>{v.src=data[i].video_url;v.loop=data.length===1;v.play().catch(()=>{})};
- v.addEventListener("ended",()=>{i=(i+1)%data.length;play()});
- play();
-}
-renderCart();loadProducts();loadRates();loadHeroVideo();
+renderCart();loadProducts();loadRates();
