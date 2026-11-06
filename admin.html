@@ -15,7 +15,20 @@
    <div class="wide admin-actions"><button class="primary-button">إضافة المنتج</button></div><p id="product-msg" class="form-message wide"></p>
   </form></div>
   <div class="admin-card"><h2>المنتجات الحالية</h2><div id="admin-products"></div></div>
-  <div class="admin-card"><h2>أسعار التوصيل حسب الولاية</h2><p class="muted">اترك الخانة فارغة إذا كان التوصيل غير متوفر لتلك الوجهة. الرقم 0 يعني توصيل مجاني.</p><div class="table-wrap"><table><thead><tr><th>الولاية</th><th>إلى المنزل (دج)</th><th>إلى المكتب (دج)</th></tr></thead><tbody id="rates-body"></tbody></table></div><div class="admin-actions"><button class="primary-button" id="save-rates" type="button">حفظ الأسعار</button></div><p id="rates-msg" class="form-message"></p></div>
   <div class="admin-card"><h2>طلبات الزبائن</h2><div class="table-wrap"><table><thead><tr><th>التاريخ</th><th>الزبون</th><th>الهاتف</th><th>العنوان</th><th>الطلب</th><th>المجموع</th><th>الحالة</th></tr></thead><tbody id="orders-body"></tbody></table></div></div>
  </section>
-</div><div class="toast" id="toast"></div><script type="module" src="admin.js"></script></body></html>
+</div><div class="modal-backdrop" id="edit-modal"><div class="modal">
+ <div class="drawer-head"><div><span class="eyebrow">إدارة المنتجات</span><h3>تعديل المنتج</h3></div><button class="icon-button" id="close-edit" type="button">✕</button></div>
+ <form id="edit-form"><input type="hidden" name="product_id">
+  <div class="form-grid">
+   <label>اسم المنتج<input name="name" required></label>
+   <label>السعر بالدينار (DA)<input name="price" type="number" min="0" required></label>
+   <label>التصنيف<input name="category" placeholder="مثلاً: ملابس"></label>
+   <label>الحالة<select name="is_active"><option value="true">ظاهر في المتجر</option><option value="false">مخفي</option></select></label>
+   <label class="wide">رابط صورة المنتج<input name="image_url" type="url" placeholder="https://..."></label>
+   <label class="wide">وصف المنتج<textarea name="description" rows="3"></textarea></label>
+  </div>
+  <div class="admin-actions"><button class="primary-button" id="save-edit">حفظ التعديلات</button><button class="secondary" type="button" id="cancel-edit">إلغاء</button></div>
+  <p id="edit-msg" class="form-message"></p>
+ </form></div></div>
+<div class="toast" id="toast"></div><script type="module" src="admin.js"></script></body></html>
