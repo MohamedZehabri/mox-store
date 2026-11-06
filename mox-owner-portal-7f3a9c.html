@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MOX — Admin</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"><style>
+.admin-wrap{max-width:1100px;margin:45px auto;padding:0 20px}.admin-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}.admin-card{border:1px solid var(--line);border-radius:12px;padding:22px;margin:18px 0;background:white}.admin-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.admin-grid label{font-size:12px;font-weight:700;display:flex;flex-direction:column;gap:6px}.admin-grid .wide{grid-column:1/-1}.admin-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}.secondary{border:1px solid var(--line);background:white;padding:10px 15px;border-radius:7px;cursor:pointer}.danger{color:#a33}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}th,td{text-align:right;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-weight:700}.status-select{padding:6px;border:1px solid var(--line);border-radius:6px}.hidden{display:none!important}.login{max-width:420px;margin:90px auto}.notice{background:#fff6e8;padding:12px;border-radius:8px;color:#79552c;font-size:12px;line-height:1.8}.admin-product{display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid var(--line);padding:12px 0}
+.opt-box{font-size:12px;font-weight:700}.opt-box>div{margin-top:8px}.chk{display:inline-flex!important;flex-direction:row!important;align-items:center;gap:6px;margin-inline-end:14px;font-weight:600}.chk input{width:auto}
+@media(max-width:600px){.admin-grid{grid-template-columns:1fr}.admin-grid .wide{grid-column:auto}.admin-top{align-items:flex-start;gap:10px;flex-direction:column}}
+</style></head>
+<body><header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">M</span><span>MOX</span></a><a href="index.html">العودة للمتجر ←</a></header>
+<div class="admin-wrap">
+ <section id="login-panel" class="admin-card login"><span class="eyebrow">منطقة خاصة</span><h2>تسجيل دخول الإدارة</h2><p class="muted">سجّل الدخول بالبريد وكلمة المرور التي أنشأتها في Supabase.</p><form id="login-form"><label>البريد الإلكتروني<input class="admin-input" name="email" type="email" required></label><br><label>كلمة المرور<input class="admin-input" name="password" type="password" required></label><br><button class="primary-button full">دخول</button><p id="login-msg" class="form-message"></p></form><p class="notice">لأمان المتجر، لا تشارك بيانات دخول الإدارة مع أي شخص.</p></section>
+ <section id="dashboard" class="hidden">
+  <div class="admin-top"><div><span class="eyebrow">لوحة التحكم</span><h1>إدارة المتجر</h1></div><button class="secondary" id="logout">تسجيل الخروج</button></div>
+  <div class="admin-card"><h2>إضافة منتج جديد</h2><form id="product-form" class="admin-grid">
+   <label>اسم المنتج<input name="name" required></label><label>السعر بالدينار (DA)<input name="price" type="number" min="0" required></label>
+   <label>التصنيف<input name="category" placeholder="مثلاً: ملابس"></label><label>رابط صورة المنتج<input name="image_url" type="url" placeholder="https://..."></label>
+   <label class="wide">وصف المنتج<textarea name="description" rows="2"></textarea></label>
+   <div class="wide opt-box">المقاسات المتوفرة (اتركها فارغة إذا لا يوجد مقاس)<div><label class="chk"><input type="checkbox" name="sizes" value="S">S</label><label class="chk"><input type="checkbox" name="sizes" value="M">M</label><label class="chk"><input type="checkbox" name="sizes" value="L">L</label><label class="chk"><input type="checkbox" name="sizes" value="XL">XL</label><label class="chk"><input type="checkbox" name="sizes" value="XXL">XXL</label></div></div>
+   <label class="wide">الألوان المتوفرة (افصل بينها بفاصلة)<input name="colors" placeholder="أسود، أبيض، أزرق"></label>
+   <label class="wide">الكمية في المخزون (اتركه فارغاً = غير محدود)<input name="stock" type="number" min="0" step="1"></label>
+   <label class="chk wide"><input type="checkbox" name="discount_enabled">تفعيل خصم الكمية لهذا المنتج</label>
+   <label>نسبة الخصم عن كل قطعة إضافية %<input name="discount_step" type="number" min="0" max="100" step="0.5" value="10"></label>
+   <label>أقصى نسبة خصم %<input name="discount_max" type="number" min="0" max="100" step="0.5" value="50"></label>
+   <div class="wide admin-actions"><button class="primary-button">إضافة المنتج</button></div><p id="product-msg" class="form-message wide"></p>
+  </form></div>
+  <div class="admin-card"><h2>المنتجات الحالية</h2><div id="admin-products"></div></div>
+  <div class="admin-card"><h2>فيديوهات الواجهة</h2><p class="muted">ارفع فيديو MP4 أو WebM (حتى 50 ميغابايت). إذا رفعت أكثر من فيديو فسيتم تشغيلها تباعاً.</p><form id="video-form" class="admin-grid"><label>عنوان (اختياري)<input name="title"></label><label>ترتيب الظهور<input name="sort_order" type="number" value="0"></label><label class="wide">ملف الفيديو<input name="file" type="file" accept="video/mp4,video/webm" required></label><div class="wide admin-actions"><button class="primary-button" id="video-btn">رفع الفيديو</button></div><p id="video-msg" class="form-message wide"></p></form><div id="admin-videos"></div></div>
+  <div class="admin-card"><h2>طلبات الزبائن</h2><div class="table-wrap"><table><thead><tr><th>التاريخ</th><th>الزبون</th><th>الهاتف</th><th>العنوان</th><th>الطلب</th><th>المجموع</th><th>الحالة</th></tr></thead><tbody id="orders-body"></tbody></table></div></div>
+ </section>
+</div><div class="modal-backdrop" id="edit-modal"><div class="modal">
+ <div class="drawer-head"><div><span class="eyebrow">إدارة المنتجات</span><h3>تعديل المنتج</h3></div><button class="icon-button" id="close-edit" type="button">✕</button></div>
+ <form id="edit-form"><input type="hidden" name="product_id">
+  <div class="form-grid">
+   <label>اسم المنتج<input name="name" required></label>
+   <label>السعر بالدينار (DA)<input name="price" type="number" min="0" required></label>
+   <label>التصنيف<input name="category" placeholder="مثلاً: ملابس"></label>
+   <label>الحالة<select name="is_active"><option value="true">ظاهر في المتجر</option><option value="false">مخفي</option></select></label>
+   <label class="wide">رابط صورة المنتج<input name="image_url" type="url" placeholder="https://..."></label>
+   <label class="wide">وصف المنتج<textarea name="description" rows="3"></textarea></label>
+   <div class="wide opt-box">المقاسات المتوفرة<div><label class="chk"><input type="checkbox" name="sizes" value="S">S</label><label class="chk"><input type="checkbox" name="sizes" value="M">M</label><label class="chk"><input type="checkbox" name="sizes" value="L">L</label><label class="chk"><input type="checkbox" name="sizes" value="XL">XL</label><label class="chk"><input type="checkbox" name="sizes" value="XXL">XXL</label></div></div>
+   <label class="wide">الألوان المتوفرة (افصل بينها بفاصلة)<input name="colors" placeholder="أسود، أبيض، أزرق"></label>
+   <label class="wide">الكمية في المخزون (فارغ = غير محدود)<input name="stock" type="number" min="0" step="1"></label>
+   <label class="chk wide"><input type="checkbox" name="discount_enabled">تفعيل خصم الكمية لهذا المنتج</label>
+   <label>نسبة الخصم عن كل قطعة إضافية %<input name="discount_step" type="number" min="0" max="100" step="0.5" value="10"></label>
+   <label>أقصى نسبة خصم %<input name="discount_max" type="number" min="0" max="100" step="0.5" value="50"></label>
+  </div>
+  <div class="admin-actions"><button class="primary-button" id="save-edit">حفظ التعديلات</button><button class="secondary" type="button" id="cancel-edit">إلغاء</button></div>
+  <p id="edit-msg" class="form-message"></p>
+ </form></div></div>
+<div class="toast" id="toast"></div><script type="module" src="admin.js"></script></body></html>
