@@ -66,3 +66,13 @@ $("#checkout-form").addEventListener("submit",async e=>{
 });
 $("#wilaya").addEventListener("change",updateShipping);$("#delivery-type").addEventListener("change",updateShipping);
 renderCart();loadProducts();loadRates();
+
+async function loadHeroVideos(){
+ const v=$("#hero-video");if(!supabase||!v)return;
+ const {data}=await supabase.from("hero_videos").select("video_url").eq("is_active",true).order("sort_order",{ascending:true}).order("created_at",{ascending:true});
+ const list=(data||[]).map(x=>x.video_url).filter(Boolean);if(!list.length)return;
+ let i=0;v.src=list[0];v.loop=list.length===1;
+ if(list.length>1)v.addEventListener("ended",()=>{i=(i+1)%list.length;v.src=list[i];v.play().catch(()=>{})});
+ v.play().catch(()=>{});
+}
+loadHeroVideos();

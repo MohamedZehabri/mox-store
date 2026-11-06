@@ -15,6 +15,7 @@
    <div class="wide admin-actions"><button class="primary-button">إضافة المنتج</button></div><p id="product-msg" class="form-message wide"></p>
   </form></div>
   <div class="admin-card"><h2>المنتجات الحالية</h2><div id="admin-products"></div></div>
+  <div class="admin-card"><h2>فيديوهات الواجهة</h2><p class="muted">ارفع فيديو MP4 أو WebM (حتى 50 ميغابايت). إذا رفعت أكثر من فيديو فسيتم تشغيلها تباعاً.</p><form id="video-form" class="admin-grid"><label>عنوان (اختياري)<input name="title"></label><label>ترتيب الظهور<input name="sort_order" type="number" value="0"></label><label class="wide">ملف الفيديو<input name="file" type="file" accept="video/mp4,video/webm" required></label><div class="wide admin-actions"><button class="primary-button" id="video-btn">رفع الفيديو</button></div><p id="video-msg" class="form-message wide"></p></form><div id="admin-videos"></div></div>
   <div class="admin-card"><h2>طلبات الزبائن</h2><div class="table-wrap"><table><thead><tr><th>التاريخ</th><th>الزبون</th><th>الهاتف</th><th>العنوان</th><th>الطلب</th><th>المجموع</th><th>الحالة</th></tr></thead><tbody id="orders-body"></tbody></table></div></div>
  </section>
 </div><div class="modal-backdrop" id="edit-modal"><div class="modal">

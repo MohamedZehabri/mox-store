@@ -4,3 +4,5 @@
 
 .contact-links{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.contact-chip{display:inline-flex;align-items:center;gap:8px;border:1px solid #ffffff30;border-radius:30px;padding:8px 16px;color:#e7efe9;text-decoration:none;font-size:12px;transition:.2s}.contact-chip:hover{background:#ffffff14}
 .contact-chip .ci{display:inline-flex;align-items:center;color:#d2ae85}.contact-chip .ci svg{width:14px;height:14px}
+.hero-video{width:min(260px,70vw);aspect-ratio:9/16;object-fit:cover;border-radius:18px;background:#14271f;box-shadow:0 25px 50px #1b332b35}
+.hero-art:has(.hero-video){height:auto}
