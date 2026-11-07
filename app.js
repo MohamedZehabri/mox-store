@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_ANON_KEY, STORE_NAME } from "./config.js";
+import { trackPageView, trackViewContent, trackAddToCart, trackInitiateCheckout, trackLead, getOrderMeta } from "./meta.js";
 
 const configured = SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("YOUR-PROJECT") && !SUPABASE_ANON_KEY.includes("YOUR_");
 const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
@@ -102,6 +103,7 @@ $("#product-grid").addEventListener("click",e=>{
  const old=cart.find(x=>String(x.id)===String(p.id)&&(x.size||"")===size&&(x.color||"")===color);
  if(old)old.qty+=qty;else cart.push({id:p.id,name:p.name,price:Number(p.price),qty,size,color});
  saveCart();toast("تمت إضافة المنتج إلى السلة");
+ trackViewContent(p);trackAddToCart(p,qty); // Meta (ViewContent مرة واحدة لكل منتج)
 });
 // معاينة السعر (مع الخصم) قبل الإضافة
 $("#product-grid").addEventListener("input",e=>{
@@ -109,6 +111,8 @@ $("#product-grid").addEventListener("input",e=>{
  const {p,qty}=r,tq=productQty(p.id)+qty,unit=unitPrice(p,tq),el=card.querySelector("[data-total]");if(!el)return;
  el.textContent=p.discount_enabled&&unit<Number(p.price)?`سعر القطعة ${money(unit)} بعد الخصم (إجمالي ${tq} قطع)`:"";
 });
+// Meta Pixel: ViewContent عند أول تفاعل مع بطاقة المنتج
+["click","change"].forEach(t=>$("#product-grid").addEventListener(t,e=>{const card=e.target.closest(".product-card");if(!card)return;const p=prodOf(card.dataset.pid);if(p)trackViewContent(p)}));
 $("#categories").addEventListener("click",e=>{const b=e.target.closest("[data-category]");if(!b)return;selectedCategory=b.dataset.category;renderCategories();renderProducts()});
 $("#search").addEventListener("input",renderProducts);
 $("#cart-items").addEventListener("click",e=>{
@@ -119,7 +123,7 @@ $("#cart-items").addEventListener("click",e=>{
 });
 function cartOpen(open){$("#cart-drawer").classList.toggle("open",open);$("#cart-overlay").classList.toggle("show",open)}
 $("#open-cart").onclick=()=>cartOpen(true);$("#close-cart").onclick=()=>cartOpen(false);$("#cart-overlay").onclick=()=>cartOpen(false);
-$("#go-checkout").onclick=()=>{if(!cart.length){toast("أضف منتجاً إلى السلة أولاً");return}cartOpen(false);$("#checkout-modal").classList.add("show")};
+$("#go-checkout").onclick=()=>{if(!cart.length){toast("أضف منتجاً إلى السلة أولاً");return}cartOpen(false);$("#checkout-modal").classList.add("show");trackInitiateCheckout(cartLines(),cartSubtotal())};
 $("#close-checkout").onclick=()=>$("#checkout-modal").classList.remove("show");
 $("#checkout-modal").addEventListener("click",e=>{if(e.target.id==="checkout-modal")$("#checkout-modal").classList.remove("show")});
 const ORDER_ERRORS={"Insufficient stock":"الكمية المطلوبة لم تعد متوفرة. حدّثنا السلة، راجعها ثم أعد المحاولة.","Product unavailable":"أحد المنتجات لم يعد متوفراً. راجع السلة ثم أعد المحاولة.","Invalid size":"المقاس المختار غير متوفر. راجع السلة.","Invalid color":"اللون المختار غير متوفر. راجع السلة.","Invalid item quantity":"كمية غير صالحة في السلة."};
@@ -129,9 +133,14 @@ $("#checkout-form").addEventListener("submit",async e=>{
  const btn=$("#submit-order");btn.disabled=true;btn.textContent="جارٍ إرسال الطلب...";
  const form=e.currentTarget,fd=new FormData(form);
  const payload={customer_name:fd.get("customer_name").trim(),phone:fd.get("phone").trim(),wilaya:fd.get("wilaya"),commune:fd.get("commune").trim(),address:fd.get("address").trim(),note:fd.get("note").trim(),items:cartLines().map(x=>({product_id:x.id,name:x.name,price:x.unit,quantity:x.qty,size:x.size||null,color:x.color||null})),delivery_type:fd.get("delivery_type"),total:0,status:"جديد"};
+ const leadLines=cartLines(),leadValue=cartSubtotal();
  try{
   if(!supabase)throw new Error("NOT_CONFIGURED");
-  const {error}=await supabase.from("orders").insert(payload);if(error)throw error;
+  let {error}=await supabase.from("orders").insert({...payload,...getOrderMeta()});
+  // قبل تشغيل SQL الخاص بأعمدة meta_* نعيد المحاولة بدونها حتى لا يتعطل استقبال الطلبات
+  if(error&&(error.code==="PGRST204"||String(error.message||"").includes("meta_")))({error}=await supabase.from("orders").insert(payload));
+  if(error)throw error;
+  trackLead(leadLines,leadValue,payload.phone);
   cart=[];saveCart();form.reset();$("#checkout-message").textContent="تم استلام طلبك بنجاح! سنتواصل معك لتأكيده.";toast("تم إرسال طلبك بنجاح");setTimeout(()=>{$("#checkout-modal").classList.remove("show");$("#checkout-message").textContent=""},3000);
   loadProducts(); // تحديث المخزون الظاهر
  }catch(err){console.error(err);
@@ -153,3 +162,4 @@ async function loadHeroVideos(){
  v.play().catch(()=>{});
 }
 loadHeroVideos();
+trackPageView();
