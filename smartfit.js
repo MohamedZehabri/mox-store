@@ -5,7 +5,7 @@ const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const saved = () => { try { const j = JSON.parse(localStorage.getItem(KEY) || "null"); return j && j.h && j.w ? j : null; } catch { return null; } };
 
 export async function loadCharts(sb) {
-  try { const { data, error } = await sb.from("size_charts").select("product_id,size,chest_cm,length_cm,shoulder_cm");
+  try { const { data, error } = await sb.from("size_charts").select("product_id,size,chest_cm,length_cm,shoulder_cm,source");
     if (error || !data) return {}; const m = {}; data.forEach((r) => (m[r.product_id] ||= []).push(r)); return m; } catch { return {}; }
 }
 
@@ -55,7 +55,7 @@ export function openSmartFit({ product: p, chart, card, supabase }) {
     log("recommended", { recommended_size: r.size, confidence: r.confidence });
     b.innerHTML = `<span class="sf-eye">YOUR RECOMMENDED SIZE</span><h3>مقاسك الموصى به</h3><div class="sf-size">${esc(r.size)}</div>
     <div class="sf-bar"><i style="width:0"></i></div><div class="sf-conf">احتمال أن يناسبك: ${r.confidence}٪ <small>(تقدير إحصائي)</small></div>
-    <div class="sf-why">محيط صدرك التقريبي نحو ${r.body} سم (تقدير من الطول والوزن). محيط القطعة بمقاس ${esc(r.size)} نحو ${r.garment} سم، أي مساحة راحة نحو ${r.ease} سم، وهذا مناسب لقصة ${fitTxt}${stTxt}.</div>
+    <div class="sf-why">محيط صدرك التقريبي نحو ${r.body} سم (تقدير من الطول والوزن). محيط القطعة بمقاس ${esc(r.size)} نحو ${r.garment} سم، أي مساحة راحة نحو ${r.ease} سم، وهذا مناسب لقصة ${fitTxt}${stTxt}.${r.standard ? "<br><b>تنبيه:</b> قياسات هذه القطعة غير مُدخلة بعد، فالتوصية مبنية على جدول مقاسات عالمي عام وليست على قياسات القطعة نفسها." : ""}</div>
     ${r.alt ? `<p class="sf-alt">إن فضّلت قطعة ${r.altSide === "looser" ? "أوسع" : "أضيق"}: جرّب ${esc(r.alt.size)}.</p>` : ""}
     <button class="sf-btn" id="sf-pick">اختر هذا المقاس</button><button class="sf-link" id="sf-edit">تعديل قياساتي</button>
     <p class="sf-note">نتيجة محسوبة بقواعد وقياسات هذه القطعة، وليست ذكاءً اصطناعياً. هي تقدير وقد تختلف حسب بنية الجسم، فإن كنت متردداً سنؤكد معك المقاس قبل الشحن.</p>`;
