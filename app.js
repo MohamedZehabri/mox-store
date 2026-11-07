@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_ANON_KEY, STORE_NAME } from "./config.js";
+import { loadCharts, openSmartFit } from "./smartfit.js";
 import { trackPageView, trackViewContent, trackAddToCart, trackInitiateCheckout, trackLead, getOrderMeta } from "./meta.js";
 
 const configured = SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("YOUR-PROJECT") && !SUPABASE_ANON_KEY.includes("YOUR_");
@@ -9,6 +10,7 @@ let products = [];
 let cart = JSON.parse(localStorage.getItem("dz_cart") || "[]");
 let selectedCategory = "الكل";
 let rates = {};
+let charts = {};
 const MAX_QTY = 20;
 const wilayas = ["أدرار","الشلف","الأغواط","أم البواقي","باتنة","بجاية","بسكرة","بشار","البليدة","البويرة","تمنراست","تبسة","تلمسان","تيارت","تيزي وزو","الجزائر","الجلفة","جيجل","سطيف","سعيدة","سكيكدة","سيدي بلعباس","عنابة","قالمة","قسنطينة","المدية","مستغانم","المسيلة","معسكر","ورقلة","وهران","البيض","إليزي","برج بوعريريج","بومرداس","الطارف","تندوف","تيسمسيلت","الوادي","خنشلة","سوق أهراس","تيبازة","ميلة","عين الدفلى","النعامة","عين تموشنت","غرداية","غليزان","تيميمون","برج باجي مختار","أولاد جلال","بني عباس","عين صالح","عين قزام","تقرت","جانت","المغير","المنيعة","أفلو","بريكة","قصر الشلالة","مسعد","عين وسارة","بوسعادة","الأبيض سيدي الشيخ","القنطرة","بئر العاتر","قصر البخاري","العريشة"];
 
@@ -56,7 +58,7 @@ function renderCategories(){
 }
 function productCard(p){
  const sizes=p.sizes||[],colors=p.colors||[],out=isOut(p);
- const opts=out?"":`${sizes.length?`<select class="opt" data-opt="size"><option value="">اختر المقاس</option>${sizes.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("")}</select>`:""}${colors.length?`<select class="opt" data-opt="color"><option value="">اختر اللون</option>${colors.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("")}</select>`:""}<div class="opt-row"><input class="opt" type="number" data-qty min="1" max="${maxFor(p)}" value="1" inputmode="numeric" aria-label="الكمية"></div>`;
+ const opts=out?"":`${sizes.length?`<select class="opt" data-opt="size"><option value="">اختر المقاس</option>${sizes.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("")}</select>`:""}${sizes.length&&charts[p.id]&&charts[p.id].length?`<button type="button" class="fit-link" data-fit="${escapeHtml(p.id)}">✦ جد مقاسي المثالي</button>`:""}${colors.length?`<select class="opt" data-opt="color"><option value="">اختر اللون</option>${colors.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("")}</select>`:""}<div class="opt-row"><input class="opt" type="number" data-qty min="1" max="${maxFor(p)}" value="1" inputmode="numeric" aria-label="الكمية"></div>`;
  const notes=`${p.stock!=null&&!out&&Number(p.stock)<=5?`<span class="stock-note">باقي ${Number(p.stock)} قطع فقط</span>`:""}${p.discount_enabled&&Number(p.discount_step)>0?`<span class="disc-note">خصم ${Number(p.discount_step)}% عن كل قطعة إضافية (حتى ${Number(p.discount_max)}%)</span>`:""}`;
  return `<article class="product-card" data-pid="${escapeHtml(p.id)}"><div class="product-image">${p.image_url?`<img src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.name)}" loading="lazy">`:'<span class="placeholder-image">✧</span>'}</div><div class="product-info"><h3>${escapeHtml(p.name)}</h3><p>${escapeHtml(p.description||"منتج مميز من متجرنا.")}</p>${notes}${opts}<span class="line-total" data-total></span><div class="product-bottom"><span class="price">${money(p.price)}</span>${out?'<button class="add-button" disabled>نفدت الكمية</button>':`<button class="add-button" data-add="${escapeHtml(p.id)}">أضف إلى السلة +</button>`}</div></div></article>`;
 }
@@ -89,6 +91,7 @@ async function loadProducts(){
  {id:"demo-2",name:"MOX Everyday Tee",description:"بساطة مدروسة لإطلالة يومية أنيقة.",price:3900,category:"جديد",image_url:""}
  ];ok=false;toast("وضع المعاينة: اربط Supabase لتفعيل الطلبات الحقيقية");}
  else {const {data,error}=await supabase.from("products").select("*").eq("is_active",true).order("created_at",{ascending:false});if(error){console.error(error);toast("تعذر تحميل المنتجات");products=[];ok=false}else products=data||[]}
+ if(supabase&&ok)charts=await loadCharts(supabase);
  renderCategories();renderProducts();
  if(ok)sanitizeCart();else renderCart();
 }
@@ -113,6 +116,7 @@ $("#product-grid").addEventListener("input",e=>{
 });
 // Meta Pixel: ViewContent عند أول تفاعل مع بطاقة المنتج
 ["click","change"].forEach(t=>$("#product-grid").addEventListener(t,e=>{const card=e.target.closest(".product-card");if(!card)return;const p=prodOf(card.dataset.pid);if(p)trackViewContent(p)}));
+$("#product-grid").addEventListener("click",e=>{const b=e.target.closest("[data-fit]");if(!b)return;const p=prodOf(b.dataset.fit);if(p)openSmartFit({product:p,chart:charts[p.id]||[],card:b.closest(".product-card"),supabase})});
 $("#categories").addEventListener("click",e=>{const b=e.target.closest("[data-category]");if(!b)return;selectedCategory=b.dataset.category;renderCategories();renderProducts()});
 $("#search").addEventListener("input",renderProducts);
 $("#cart-items").addEventListener("click",e=>{
