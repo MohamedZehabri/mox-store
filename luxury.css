@@ -1,0 +1,35 @@
+/* MOX Luxury: طبقة تصميم فوق style.css (لا تحذف أي ميزة). الأسلوب: أبيض، أسود، خطوط رفيعة، أزرار حادة. */
+:root{--ink:#000;--line:#d9d9d9;--muted:#6b6b6b;--green:#000;--accent:#000}
+body{font-family:"Cairo","Helvetica Neue",Arial,sans-serif;letter-spacing:.2px}
+.topbar{height:72px;background:#fff;border-bottom:1px solid var(--line)}
+.brand{letter-spacing:3px;font-weight:800}.brand-mark{border-radius:0;background:#000}
+.topbar nav a{color:#000;font-size:12px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase}
+.cart-button{border-radius:0;background:#000;font-size:12px;letter-spacing:1px}.cart-button span{border-radius:0}
+.hero{background:#f4f4f4}.hero h1{font-weight:800;letter-spacing:-.5px}.hero h1 em{color:#000}.eyebrow{color:#000;letter-spacing:2.5px;font-size:11px}
+.primary-link,.primary-button{border-radius:0;background:#000;letter-spacing:1.2px;font-size:12px;text-transform:uppercase}
+.section-head h2,.about h2{font-weight:800;letter-spacing:-.3px}.search-wrap input{border-radius:0;border:0;border-bottom:1px solid #000}
+.category{border-radius:0;border:0;border-bottom:2px solid transparent;background:none;color:#000;padding:6px 4px;margin-left:14px;font-weight:700}.category.active{background:none;color:#000;border-bottom-color:#000}
+.product-grid{gap:30px 18px}.product-card{border:0;border-radius:0;background:none;cursor:pointer}.product-card:hover{transform:none;box-shadow:none}
+.product-image{height:auto;aspect-ratio:3/4;background:#f1f1f1;border-radius:0}.product-image img{transition:transform .6s}.product-card:hover .product-image img{transform:scale(1.04)}
+.product-info{padding:12px 0 0}.product-info h3{font-size:13px;font-weight:700;letter-spacing:.3px}.product-info p{display:none}
+.product-card .opt,.product-card .opt-row,.product-card .add-button,.product-card .fit-link,.product-card .line-total{display:none!important}
+.product-bottom{margin-top:6px}.price{color:#000;font-weight:600;font-size:13px}
+.about{background:#f4f4f4;border-radius:0}footer{background:#000}footer .brand-mark{background:#fff;color:#000}
+.modal,.drawer{border-radius:0}.form-grid input,.form-grid select,.form-grid textarea{border-radius:0}.icon-button{border-radius:0;background:#f1f1f1}
+.contact-chip{border-radius:0}
+/* ===== صفحة المنتج (PDP) ===== */
+.pdp-bd{position:fixed;inset:0;z-index:30;background:#fff;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s;overflow:auto}.pdp-bd.show{opacity:1;visibility:visible}
+.pdp{direction:ltr;display:grid;grid-template-columns:1fr 1fr;min-height:100%}
+.pdp-img{background:#ededed;position:sticky;top:0;height:100vh;display:grid;place-items:center;overflow:hidden}.pdp-img img{width:100%;height:100%;object-fit:cover}
+.pdp-info{direction:rtl;padding:54px 6% 60px 6%;max-width:640px}
+.pdp-x{position:fixed;top:16px;left:16px;z-index:2;width:42px;height:42px;border:0;background:#fff;border:1px solid #000;cursor:pointer;font-size:16px}
+.pdp-info h2{font-size:20px;font-weight:800;margin:0 0 14px;letter-spacing:.2px}.pdp-price{font-size:15px;color:#333;margin:0 0 22px}
+.pdp-sec{border-top:1px solid var(--line);padding:20px 0}.pdp-lbl{font-size:12px;font-weight:800;letter-spacing:1.2px;margin:0 0 14px;display:flex;justify-content:space-between;align-items:center}.pdp-lbl span{font-weight:500;color:#333;letter-spacing:0}
+.pdp-sw{display:flex;gap:16px;flex-wrap:wrap}.pdp-sw button{width:36px;height:36px;border-radius:50%;border:1px solid #bbb;cursor:pointer;padding:0;outline:0;box-shadow:0 0 0 3px #fff inset}.pdp-sw button.on{outline:1px solid #000;outline-offset:2px}
+.pdp-sw .pdp-txt{width:auto;height:auto;border-radius:0;padding:10px 16px;box-shadow:none;background:#fff;font-size:13px}.pdp-sw .pdp-txt.on{outline:0;border-color:#000;box-shadow:0 0 0 1px #000}
+.pdp-guide{background:none;border:0;border-bottom:1px solid #000;padding:0 0 1px;cursor:pointer;font-size:13px;font-weight:600;color:#000}
+.pdp-sizes{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}.pdp-sizes button{height:46px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:14px;font-weight:600;transition:.15s}.pdp-sizes button:hover{border-color:#000}.pdp-sizes button.on{background:#000;color:#fff;border-color:#000}
+.pdp-qty{display:inline-flex;border:1px solid var(--line)}.pdp-qty button{width:44px;height:44px;border:0;background:#fff;cursor:pointer;font-size:18px}.pdp-qty span{width:44px;display:grid;place-items:center;font-weight:700}
+.pdp-add{width:100%;height:54px;border:0;background:#000;color:#fff;font-weight:800;font-size:13px;letter-spacing:2px;cursor:pointer;margin-top:6px}.pdp-add:disabled{opacity:.4;cursor:not-allowed}
+.pdp-note{font-size:12px;color:var(--muted);line-height:2;margin:14px 0 0}.pdp-desc{font-size:13px;line-height:2;color:#333;margin:0}
+@media(max-width:850px){.pdp{grid-template-columns:1fr}.pdp-img{position:static;height:62vh}.pdp-info{padding:26px 6% 60px;max-width:none}}

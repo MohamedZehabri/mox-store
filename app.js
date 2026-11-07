@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_ANON_KEY, STORE_NAME } from "./config.js";
 import { loadCharts, openSmartFit } from "./smartfit.js";
+import { openPDP } from "./pdp.js";
 import { trackPageView, trackViewContent, trackAddToCart, trackInitiateCheckout, trackLead, getOrderMeta } from "./meta.js";
 
 const configured = SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("YOUR-PROJECT") && !SUPABASE_ANON_KEY.includes("YOUR_");
@@ -116,6 +117,7 @@ $("#product-grid").addEventListener("input",e=>{
 });
 // Meta Pixel: ViewContent عند أول تفاعل مع بطاقة المنتج
 ["click","change"].forEach(t=>$("#product-grid").addEventListener(t,e=>{const card=e.target.closest(".product-card");if(!card)return;const p=prodOf(card.dataset.pid);if(p)trackViewContent(p)}));
+$("#product-grid").addEventListener("click",e=>{if(e.target.closest("[data-add],[data-fit],select,input"))return;const card=e.target.closest(".product-card");if(!card)return;const p=prodOf(card.dataset.pid);if(p)openPDP({product:p,card,chart:charts[p.id]||[],supabase})});
 $("#product-grid").addEventListener("click",e=>{const b=e.target.closest("[data-fit]");if(!b)return;const p=prodOf(b.dataset.fit);if(p)openSmartFit({product:p,chart:charts[p.id]||[],card:b.closest(".product-card"),supabase})});
 $("#categories").addEventListener("click",e=>{const b=e.target.closest("[data-category]");if(!b)return;selectedCategory=b.dataset.category;renderCategories();renderProducts()});
 $("#search").addEventListener("input",renderProducts);
