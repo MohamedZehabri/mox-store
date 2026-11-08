@@ -1,3 +1,7 @@
+// شعار M كـ SVG هندسي متناظر تماماً، فيقع في منتصف المربع بالضبط مهما كان الخط.
+const M_SVG = '<svg viewBox="0 0 24 24" width="60%" height="60%" aria-hidden="true" style="display:block"><path fill="currentColor" d="M4 19V5h3.4L12 12.2 16.6 5H20v14h-3.2v-8.6L12 17.6l-4.8-7.2V19z"/></svg>';
+const fixMarks = (scope) => scope.querySelectorAll(".brand-mark,.bc-mark").forEach((el) => { if (el.textContent.trim() === "M") el.innerHTML = M_SVG; });
+fixMarks(document);
 // MOX: عند اللمس أو التمرير فوق الشعار يدور حرف M وتظهر بطاقة أنيقة فيها الشعار وروابط التواصل.
 const brand = document.querySelector(".topbar .brand");
 if (brand) {
@@ -7,6 +11,7 @@ if (brand) {
   document.querySelectorAll("footer .contact-chip").forEach((a) => links.append(a.cloneNode(true)));
   if (!links.children.length) links.remove();
   document.querySelector(".topbar").append(card);
+  fixMarks(card);
   let t; const touch = () => matchMedia("(hover:none)").matches;
   const open = () => { clearTimeout(t); card.classList.add("show"); brand.classList.add("fx-on"); };
   const shut = () => { clearTimeout(t); t = setTimeout(() => { card.classList.remove("show"); brand.classList.remove("fx-on"); }, 180); };
