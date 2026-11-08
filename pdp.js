@@ -18,6 +18,7 @@ export function openPDP({ product: p, card, chart, supabase }) {
   let size = "", color = "", qty = 1;
   root.innerHTML = `<button class="pdp-x" aria-label="إغلاق">✕</button><div class="pdp"><div class="pdp-img">${p.image_url ? `<img src="${esc(p.image_url)}" alt="${esc(p.name)}">` : ""}</div><div class="pdp-info">
     <h2>${esc(p.name)}</h2><p class="pdp-price">${money(p.price)}</p>
+    ${p.discount_enabled && Number(p.discount_step) > 0 ? `<p class="pdp-disc">خصم ${Number(p.discount_step)}٪ عن كل قطعة إضافية (حتى ${Number(p.discount_max)}٪)</p>` : ""}
     ${colors.length ? `<div class="pdp-sec"><p class="pdp-lbl">اللون <span id="pdp-cn">اختر</span></p><div class="pdp-sw">${colors.map((c) => { const h = HEX[String(c).trim().toLowerCase()] || HEX[String(c).trim()]; return h ? `<button data-c="${esc(c)}" style="background:${h}" aria-label="${esc(c)}"></button>` : `<button class="pdp-txt" data-c="${esc(c)}">${esc(c)}</button>`; }).join("")}</div></div>` : ""}
     ${sizes.length ? `<div class="pdp-sec"><p class="pdp-lbl"><b>المقاس</b>${chart.length ? '<button class="pdp-guide" id="pdp-fit">✦ دليل المقاسات: جد مقاسي</button>' : ""}</p><div class="pdp-sizes">${sizes.map((s) => `<button data-s="${esc(s)}">${esc(s)}</button>`).join("")}</div></div>` : ""}
     <div class="pdp-sec"><p class="pdp-lbl">الكمية</p><div class="pdp-qty"><button id="pdp-m" aria-label="−">−</button><span id="pdp-q">1</span><button id="pdp-p" aria-label="+">+</button></div></div>

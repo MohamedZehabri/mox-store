@@ -64,3 +64,9 @@ body{font-family:"Cairo","Helvetica Neue",Arial,sans-serif;letter-spacing:.2px}
 @keyframes bcfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 @media(prefers-reduced-motion:reduce){.brand-card .bc-mark{animation:none}.topbar .brand.fx-on .brand-mark{transform:none}}
 @media(max-width:560px){.brand-card{right:4%}}
+/* ===== الصورة كاملة بلا اقتطاع + الخصم بالأحمر ===== */
+.product-image{background:#f6f6f6}.product-image img{object-fit:contain;object-position:center}.product-card:hover .product-image img{transform:none}
+.pdp-img{background:#f6f6f6}.pdp-img img{object-fit:contain}
+.disc-note,.pdp-disc{display:inline-block;color:#d71920;font-weight:800;font-size:12px;margin:0 0 6px}
+.disc-note{background:#fdecec;border-radius:20px;padding:3px 10px;margin:4px 0}
+.pdp-disc{background:#fdecec;border-radius:20px;padding:5px 14px;margin:-8px 0 18px;font-size:13px}
