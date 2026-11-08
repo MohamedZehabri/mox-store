@@ -33,3 +33,20 @@ body{font-family:"Cairo","Helvetica Neue",Arial,sans-serif;letter-spacing:.2px}
 .pdp-add{width:100%;height:54px;border:0;background:#000;color:#fff;font-weight:800;font-size:13px;letter-spacing:2px;cursor:pointer;margin-top:6px}.pdp-add:disabled{opacity:.4;cursor:not-allowed}
 .pdp-note{font-size:12px;color:var(--muted);line-height:2;margin:14px 0 0}.pdp-desc{font-size:13px;line-height:2;color:#333;margin:0}
 @media(max-width:850px){.pdp{grid-template-columns:1fr}.pdp-img{position:static;height:62vh}.pdp-info{padding:26px 6% 60px;max-width:none}}
+/* ===== زوايا ناعمة (مستديرة) ===== */
+:root{--r:14px;--r-sm:10px}
+.brand-mark{border-radius:12px}
+.cart-button,.cart-button span{border-radius:30px}
+.primary-link,.primary-button,.add-button{border-radius:var(--r-sm)}
+.search-wrap input{border:1px solid var(--line);border-radius:30px;padding:11px 18px}
+.category{border:1px solid var(--line);border-radius:30px;padding:7px 18px;margin-left:0}.category.active{background:#000;color:#fff;border-color:#000}
+.hero,.about{border-radius:var(--r)}.about{border-radius:20px}.hero-art video,.hero-video{border-radius:20px}
+.product-image{border-radius:var(--r)}.product-card{border-radius:var(--r)}
+.modal,.drawer{border-radius:20px}.drawer{border-top-left-radius:0;border-bottom-left-radius:0;border-top-right-radius:20px;border-bottom-right-radius:20px}
+.form-grid input,.form-grid select,.form-grid textarea,.admin-input{border-radius:var(--r-sm)}.icon-button{border-radius:50%}
+.contact-chip{border-radius:30px}.toast{border-radius:30px}.qty-controls button{border-radius:8px}
+.pdp-x{border-radius:50%}.pdp-img{border-radius:0 0 0 0}.pdp-img img{border-radius:0}
+.pdp-sizes button{border-radius:var(--r-sm)}.pdp-qty{border-radius:var(--r-sm);overflow:hidden}.pdp-add{border-radius:var(--r-sm)}
+.pdp-sw .pdp-txt{border-radius:var(--r-sm)}
+.sf-m{border-radius:22px}.sf-btn,.sf-row input,.fit-link{border-radius:12px}.sf-why{border-radius:14px}
+@media(max-width:850px){.pdp-img{border-radius:0 0 22px 22px}}
