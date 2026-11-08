@@ -50,3 +50,17 @@ body{font-family:"Cairo","Helvetica Neue",Arial,sans-serif;letter-spacing:.2px}
 .pdp-sw .pdp-txt{border-radius:var(--r-sm)}
 .sf-m{border-radius:22px}.sf-btn,.sf-row input,.fit-link{border-radius:12px}.sf-why{border-radius:14px}
 @media(max-width:850px){.pdp-img{border-radius:0 0 22px 22px}}
+/* ===== تأثير الشعار (MOX / M) ===== */
+.topbar .brand{perspective:400px}.topbar .brand-mark{transition:transform .8s cubic-bezier(.2,.8,.2,1),background .3s,color .3s,box-shadow .3s}
+.topbar .brand #store-name{transition:letter-spacing .5s}
+.topbar .brand.fx-on .brand-mark{transform:rotateY(360deg);background:#fff;color:#000;box-shadow:inset 0 0 0 2px #000,0 8px 22px #0003}
+.topbar .brand.fx-on #store-name{letter-spacing:7px}
+.brand-card{position:absolute;top:calc(100% + 10px);right:7%;width:min(300px,88vw);background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 60px #0002;padding:22px;text-align:center;opacity:0;visibility:hidden;transform:translateY(-10px) scale(.97);transform-origin:top right;transition:opacity .3s,transform .4s cubic-bezier(.2,.8,.2,1),visibility .3s;z-index:12}
+.brand-card.show{opacity:1;visibility:visible;transform:none}
+.brand-card .bc-mark{width:62px;height:62px;margin:0 auto 12px;border-radius:20px;background:#000;color:#fff;display:grid;place-items:center;font-size:32px;font-weight:800;animation:bcfloat 3s ease-in-out infinite}
+.brand-card h4{margin:0;font-size:20px;letter-spacing:6px;font-weight:800}.brand-card p{margin:6px 0 14px;font-size:12px;color:var(--muted);letter-spacing:1.5px}
+.brand-card .bc-links{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;border-top:1px solid var(--line);padding-top:14px}
+.brand-card .contact-chip{color:#000;border-color:var(--line);font-size:11px;padding:7px 12px}.brand-card .contact-chip .ci{color:#000}.brand-card .contact-chip:hover{background:#000;color:#fff}.brand-card .contact-chip:hover .ci{color:#fff}
+@keyframes bcfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@media(prefers-reduced-motion:reduce){.brand-card .bc-mark{animation:none}.topbar .brand.fx-on .brand-mark{transform:none}}
+@media(max-width:560px){.brand-card{right:4%}}
