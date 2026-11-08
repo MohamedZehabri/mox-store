@@ -70,3 +70,16 @@ body{font-family:"Cairo","Helvetica Neue",Arial,sans-serif;letter-spacing:.2px}
 .disc-note,.pdp-disc{display:inline-block;color:#d71920;font-weight:800;font-size:12px;margin:0 0 6px}
 .disc-note{background:#fdecec;border-radius:20px;padding:3px 10px;margin:4px 0}
 .pdp-disc{background:#fdecec;border-radius:20px;padding:5px 14px;margin:-8px 0 18px;font-size:13px}
+/* ===== رجوع الصورة مقرّبة (cover) كما كانت ===== */
+.product-image img{object-fit:cover}.product-card:hover .product-image img{transform:scale(1.05)}.pdp-img img{object-fit:cover}
+/* ===== لمسات MOX ===== */
+.fx-progress{position:fixed;top:0;right:0;height:3px;width:0;background:linear-gradient(90deg,#000,#9a7957);z-index:60;transition:width .1s linear}
+.fx-marquee{direction:ltr;overflow:hidden;background:#000;color:#fff;padding:11px 0;white-space:nowrap}
+.fx-marquee div{display:inline-flex;animation:fxslide 28s linear infinite}.fx-marquee span{font-size:12px;letter-spacing:2px;padding:0 26px;font-weight:600}.fx-marquee b{color:#d2ae85;font-weight:400}
+.fx-marquee:hover div{animation-play-state:paused}@keyframes fxslide{to{transform:translateX(-50%)}}
+.fx-rv{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.8,.2,1),transform .7s cubic-bezier(.2,.8,.2,1)}.fx-rv.fx-in{opacity:1;transform:none}
+.hero h1,.hero-copy>p,.hero .primary-link,.trust-row{animation:fxup .9s cubic-bezier(.2,.8,.2,1) both}.hero-copy>p{animation-delay:.12s}.hero .primary-link{animation-delay:.24s}.trust-row{animation-delay:.36s}
+@keyframes fxup{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+.primary-link,.primary-button,.cart-button{transition:transform .2s,box-shadow .2s}.primary-link:hover,.primary-button:hover,.cart-button:hover{transform:translateY(-2px);box-shadow:0 10px 24px #0003}
+.price{transition:letter-spacing .3s}.product-card:hover .price{letter-spacing:.6px}
+@media(prefers-reduced-motion:reduce){.fx-marquee div,.hero h1,.hero-copy>p,.hero .primary-link,.trust-row{animation:none}.fx-rv{opacity:1;transform:none;transition:none}}

@@ -3,6 +3,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY, STORE_NAME } from "./config.js";
 import { loadCharts, openSmartFit } from "./smartfit.js";
 import { openPDP } from "./pdp.js";
 import "./brand-fx.js";
+import "./flair.js";
 import { trackPageView, trackViewContent, trackAddToCart, trackInitiateCheckout, trackLead, getOrderMeta } from "./meta.js";
 
 const configured = SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("YOUR-PROJECT") && !SUPABASE_ANON_KEY.includes("YOUR_");
