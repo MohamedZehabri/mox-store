@@ -4,6 +4,8 @@ import { loadCharts, openSmartFit } from "./smartfit.js";
 import { openPDP } from "./pdp.js";
 import "./brand-fx.js";
 import "./flair.js";
+import "./smartcart.js";
+import "./assistant.js";
 import { trackPageView, trackViewContent, trackAddToCart, trackInitiateCheckout, trackLead, getOrderMeta } from "./meta.js";
 
 const configured = SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("YOUR-PROJECT") && !SUPABASE_ANON_KEY.includes("YOUR_");
@@ -49,7 +51,7 @@ function renderCart(){
   const lines=cartLines();
   $("#cart-items").innerHTML=lines.length?lines.map((x,i)=>`<div class="cart-line"><div><strong>${escapeHtml(x.name)}</strong>${(x.size||x.color)?`<small>${[x.size,x.color].filter(Boolean).map(escapeHtml).join(" • ")}</small>`:""}<small>${money(x.unit)} × ${x.qty}${x.unit<x.base?` <s>${money(x.base)}</s>`:""} = ${money(x.line)}</small></div><div class="qty-controls"><button data-dec="${i}">−</button><span>${x.qty}</span><button data-inc="${i}">+</button></div></div>`).join(""):'<p class="muted">السلة فارغة حالياً.</p>';
   $("#cart-total").textContent=money(cartSubtotal());
-  $("#checkout-total").textContent=$("#cart-total").textContent;updateShipping();
+  $("#checkout-total").textContent=$("#cart-total").textContent;updateShipping();document.dispatchEvent(new CustomEvent("mox:cart"));
 }
 function shippingFee(){const w=$("#wilaya").value,r=rates[w];if(!w||!r||r.is_active===false)return null;const v=$("#delivery-type").value==="desk"?r.desk_price:r.home_price;return v==null?null:Number(v)}
 function syncDelivery(){const r=rates[$("#wilaya").value],sel=$("#delivery-type"),h=sel.querySelector('[value="home"]'),d=sel.querySelector('[value="desk"]');const lbl=(t,p)=>p==null?t+" — غير متوفر":t+" — "+(Number(p)===0?"مجاني":money(p));h.textContent=r?lbl("إلى المنزل",r.home_price):"إلى المنزل";d.textContent=r?lbl("إلى المكتب (Stop Desk)",r.desk_price):"إلى المكتب (Stop Desk)";h.disabled=!!r&&r.home_price==null;d.disabled=!!r&&r.desk_price==null;if(sel.value==="desk"&&d.disabled&&!h.disabled)sel.value="home";if(sel.value==="home"&&h.disabled&&!d.disabled)sel.value="desk"}
@@ -159,6 +161,7 @@ $("#checkout-form").addEventListener("submit",async e=>{
  finally{btn.disabled=false;btn.textContent="تأكيد الطلب"}
 });
 $("#wilaya").addEventListener("change",updateShipping);$("#delivery-type").addEventListener("change",updateShipping);
+window.MOX={cartLines,products:()=>products,unitPrice,maxFor,productQty,money};
 renderCart();loadProducts();loadRates();
 
 async function loadHeroVideos(){

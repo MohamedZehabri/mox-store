@@ -83,3 +83,7 @@ body{font-family:"Cairo","Helvetica Neue",Arial,sans-serif;letter-spacing:.2px}
 .primary-link,.primary-button,.cart-button{transition:transform .2s,box-shadow .2s}.primary-link:hover,.primary-button:hover,.cart-button:hover{transform:translateY(-2px);box-shadow:0 10px 24px #0003}
 .price{transition:letter-spacing .3s}.product-card:hover .price{letter-spacing:.6px}
 @media(prefers-reduced-motion:reduce){.fx-marquee div,.hero h1,.hero-copy>p,.hero .primary-link,.trust-row{animation:none}.fx-rv{opacity:1;transform:none;transition:none}}
+/* ===== إصلاح: الشريط المتحرك فوق الفيديو في الجوال ===== */
+.hero-art:has(video){height:auto!important;min-height:0}
+.hero{position:relative;z-index:1}.fx-marquee{position:relative;z-index:3;clear:both}
+@media(max-width:850px){.hero-art:has(video){padding:0 0 4px}.hero-video{width:min(240px,66vw)}}
