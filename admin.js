@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+import { initCRM } from "./crm.js";
 const configured=SUPABASE_URL.startsWith("https://")&&!SUPABASE_URL.includes("YOUR-PROJECT")&&!SUPABASE_ANON_KEY.includes("YOUR_");
 const sb=configured?createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
 const $=s=>document.querySelector(s),money=n=>`${Number(n||0).toLocaleString("fr-DZ")} دج`;
@@ -11,7 +12,7 @@ const stockTxt=p=>p.stock==null?"مخزون غير محدود":Number(p.stock)<=
 function toast(s){const t=$("#toast");t.textContent=s;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2500)}
 function showDash(on){$("#login-panel").classList.toggle("hidden",on);$("#dashboard").classList.toggle("hidden",!on)}
 async function checkSession(){if(!sb){$("#login-msg").textContent="أضف بيانات Supabase إلى config.js أولاً.";return}const {data}=await sb.auth.getSession();if(data.session)await verifyAdmin();else showDash(false)}
-async function verifyAdmin(){const {data:{user}}=await sb.auth.getUser();if(!user)return showDash(false);const {data,error}=await sb.from("admins").select("user_id").eq("user_id",user.id).maybeSingle();if(error||!data){await sb.auth.signOut();$("#login-msg").textContent="هذا الحساب غير مفعّل كمدير. أضف user ID إلى جدول admins.";return showDash(false)}showDash(true);loadAll()}
+async function verifyAdmin(){const {data:{user}}=await sb.auth.getUser();if(!user)return showDash(false);const {data,error}=await sb.from("admins").select("user_id").eq("user_id",user.id).maybeSingle();if(error||!data){await sb.auth.signOut();$("#login-msg").textContent="هذا الحساب غير مفعّل كمدير. أضف user ID إلى جدول admins.";return showDash(false)}showDash(true);loadAll();initCRM(sb)}
 $("#login-form").onsubmit=async e=>{e.preventDefault();if(!sb)return;const f=new FormData(e.currentTarget);const {error}=await sb.auth.signInWithPassword({email:f.get("email"),password:f.get("password")});if(error)$("#login-msg").textContent="تعذر تسجيل الدخول: "+error.message;else await verifyAdmin()};
 $("#logout").onclick=async()=>{await sb.auth.signOut();showDash(false)};
 async function loadAll(){await Promise.all([loadProducts(),loadOrders(),loadVideos()])}
