@@ -7,6 +7,13 @@
 
   // [الفرنسية, الإنجليزية]
   var T = {
+    'التفاصيل والمقاسات': ['Détails et tailles', 'Details & sizes'],
+    'اختر قطعة من الشماعة لمعاينتها': ['Choisissez une pièce sur le portant', 'Pick a piece from the rack'],
+    'اللون': ['Couleur', 'Color'],
+    'نفدت الكمية': ['Épuisé', 'Sold out'],
+    'السابق': ['Précédent', 'Previous'],
+    'التالي': ['Suivant', 'Next'],
+    'ألوان القطعة': ['Couleurs', 'Colors'],
     'التشكيلة': ['Collection', 'Collection'],
     'عن MOX': ['À propos de MOX', 'About MOX'],
     'تواصل معنا': ['Nous contacter', 'Contact us'],
