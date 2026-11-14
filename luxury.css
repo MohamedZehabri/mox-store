@@ -88,7 +88,8 @@ body{font-family:"Cairo","Helvetica Neue",Arial,sans-serif;letter-spacing:.2px}
 .hero{position:relative;z-index:1}.fx-marquee{position:relative;z-index:3;clear:both}
 @media(max-width:850px){.hero-art:has(video){padding:0 0 4px}.hero-video{width:min(240px,66vw)}}
 
-/* MOX: larger heavy wordmark text in the top bar (mark and bar size unchanged) */
-.topbar .brand{font-size:36px;font-weight:800;letter-spacing:1px;line-height:1;-webkit-text-stroke:1.4px currentColor}
-@media(max-width:850px){.topbar .brand{font-size:30px}}
-@media(max-width:560px){.topbar .brand{font-size:25px}}
+/* MOX: top-bar wordmark text: shorter height, same width (stretched horizontally), smaller next to the mark */
+.topbar .brand{font-weight:800;letter-spacing:1px;line-height:1}
+.topbar .brand #store-name{display:inline-block;font-size:26px;-webkit-text-stroke:1px currentColor;transform:scaleX(1.38);transform-origin:right center}
+@media(max-width:850px){.topbar .brand #store-name{font-size:22px;transform:scaleX(1.36)}}
+@media(max-width:560px){.topbar .brand #store-name{font-size:19px;transform:scaleX(1.32)}}
