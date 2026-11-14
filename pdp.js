@@ -4,7 +4,7 @@ import { openSmartFit } from "./smartfit.js";
 const link = document.createElement("link"); link.rel = "stylesheet"; link.href = new URL("./luxury.css", import.meta.url).href; document.head.append(link);
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const money = (n) => `${Number(n || 0).toLocaleString("fr-DZ")} دج`;
-const HEX = { "أسود": "#000", black: "#000", "أبيض": "#fff", white: "#fff", "أحمر": "#c0262d", red: "#c0262d", "أزرق": "#2a5db0", blue: "#2a5db0", "كحلي": "#1b2a4a", navy: "#1b2a4a", "أخضر": "#2f7d4f", green: "#2f7d4f", "زيتي": "#5a5a2e", olive: "#5a5a2e", "بيج": "#d8c3a5", beige: "#d8c3a5", "عسلي": "#c9a36a", honey: "#c9a36a", "رمادي": "#8a8a8a", gray: "#8a8a8a", grey: "#8a8a8a", "بني": "#6b4a2e", brown: "#6b4a2e", "وردي": "#e8a9b8", pink: "#e8a9b8", "أصفر": "#e6c43b", yellow: "#e6c43b", "برتقالي": "#e07b2a", orange: "#e07b2a", "بنفسجي": "#6c4a9c", purple: "#6c4a9c", "كاكي": "#a39a73", khaki: "#a39a73" };
+const HEX = { "أسود": "#000", black: "#000", "أبيض": "#fff", white: "#fff", "أحمر": "#c0262d", red: "#c0262d", "أزرق": "#2a5db0", blue: "#2a5db0", "كحلي": "#1b2a4a", navy: "#1b2a4a", "أخضر": "#2f7d4f", green: "#2f7d4f", "زيتي": "#5a5a2e", olive: "#5a5a2e", "بيج": "#d8c3a5", beige: "#d8c3a5", "عسلي": "#c9a36a", honey: "#c9a36a", "رمادي": "#8a8a8a", gray: "#8a8a8a", grey: "#8a8a8a", "بني": "#6b4a2e", brown: "#6b4a2e", "وردي": "#e8a9b8", pink: "#e8a9b8", "أصفر": "#e6c43b", yellow: "#e6c43b", "برتقالي": "#e07b2a", orange: "#e07b2a", "بنفسجي": "#6c4a9c", purple: "#6c4a9c", "كاكي": "#a39a73", khaki: "#a39a73", "عنابي": "#6d1f2f", "نبيذي": "#5b1a2b", "خردلي": "#c79a1b", "ذهبي": "#c9a227", "سماوي": "#7fbfe6", "كريمي": "#efe6d2", "تركوازي": "#2bb3a6", "فضي": "#c0c0c0", "زهري": "#f2b5c4", "موف": "#9b6bb5", "ليموني": "#d7e04b" };
 let root;
 function ensure() {
   if (root) return; root = document.createElement("div"); root.className = "pdp-bd"; document.body.append(root);
@@ -12,13 +12,17 @@ function ensure() {
 }
 function close() { if (!root) return; root.classList.remove("show"); document.body.style.overflow = ""; }
 
-// تبديل صورة صفحة المنتج عند اختيار لون له صورة خاصة
+// تبديل صورة صفحة المنتج عند اختيار لون: صورة اللون إن وُجدت، وإلا تلوين تلقائي للصورة الرئيسية
 function swapImg(p, color) {
-  const u = (p.color_images || {})[color] || p.image_url, im = root.querySelector(".pdp-img img"); if (!u || !im || im.dataset.u === u) return;
-  im.dataset.u = u; const cu = window.MOX_CUT?.done?.get(u), want = cu || u, pre = new Image();
-  im.style.transition = "opacity .2s"; im.style.opacity = 0;
-  pre.onload = pre.onerror = () => { im.src = want; im.style.objectFit = cu ? "contain" : ""; im.style.opacity = 1; };
-  pre.src = want;
+  const im = root.querySelector(".pdp-img img"); if (!im) return;
+  const own = (p.color_images || {})[color], hex = HEX[String(color).trim().toLowerCase()] || HEX[String(color).trim()];
+  const key = own || (hex && p.image_url ? p.image_url + "#" + hex : p.image_url); if (!key || im.dataset.u === key) return;
+  im.dataset.u = key;
+  const apply = (src, cut) => { if (im.dataset.u !== key) return; const pre = new Image(); im.style.transition = "opacity .2s"; im.style.opacity = 0; pre.onload = pre.onerror = () => { if (im.dataset.u !== key) return; im.src = src; im.style.objectFit = cut ? "contain" : ""; im.style.opacity = 1; }; pre.src = src; };
+  const M = window.MOX_CUT;
+  if (own) { apply(M?.done?.get(own) || own, M?.done?.has(own)); }
+  else if (hex && p.image_url && M?.tint) { M.tint(p.image_url, hex).then((u) => { if (u) apply(u, true); }); }
+  else apply(M?.done?.get(p.image_url) || p.image_url, M?.done?.has(p.image_url));
 }
 
 export function openPDP({ product: p, card, chart, supabase }) {

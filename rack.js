@@ -1,14 +1,14 @@
 // MOX Rack: يعرض منتجات المتجر الحقيقية على شماعة. لا يغيّر منطق السلة أو المخزون أو الخصم أو Meta:
 // يقرأ بطاقات #product-grid التي يرسمها app.js (فتبقى البحث والتصنيفات كما هي)، وعند طلب التفاصيل يضغط على البطاقة الأصلية
 // تماماً كما يفعل assistant.js وsmartcart.js، فتفتح صفحة المنتج (PDP) الموجودة.
-import { cutout } from "./cutout.js";
+import { cutout, tinted } from "./cutout.js";
 const grid = document.querySelector("#product-grid");
 if (grid) {
   const reduce = matchMedia("(prefers-reduced-motion:reduce)").matches;
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const money = (n) => (window.MOX?.money ? window.MOX.money(n) : `${Number(n || 0).toLocaleString("fr-DZ")} دج`);
-  const HEX = { "أسود": "#111", black: "#111", "أبيض": "#fff", white: "#fff", "أحمر": "#c0262d", red: "#c0262d", "أزرق": "#2a5db0", blue: "#2a5db0", "كحلي": "#1b2a4a", navy: "#1b2a4a", "أخضر": "#2f7d4f", green: "#2f7d4f", "زيتي": "#5a5a2e", olive: "#5a5a2e", "بيج": "#d8c3a5", beige: "#d8c3a5", "عسلي": "#c9a36a", honey: "#c9a36a", "رمادي": "#8a8a8a", gray: "#8a8a8a", grey: "#8a8a8a", "بني": "#6b4a2e", brown: "#6b4a2e", "وردي": "#e8a9b8", pink: "#e8a9b8", "أصفر": "#e6c43b", yellow: "#e6c43b", "برتقالي": "#e07b2a", orange: "#e07b2a", "بنفسجي": "#6c4a9c", purple: "#6c4a9c", "كاكي": "#a39a73", khaki: "#a39a73" };
-  const hexOf = (c) => HEX[String(c).trim().toLowerCase()] || HEX[String(c).trim()] || "";
+  const HEX = { "أسود": "#111", black: "#111", "أبيض": "#fff", white: "#fff", "أحمر": "#c0262d", red: "#c0262d", "أزرق": "#2a5db0", blue: "#2a5db0", "كحلي": "#1b2a4a", navy: "#1b2a4a", "أخضر": "#2f7d4f", green: "#2f7d4f", "زيتي": "#5a5a2e", olive: "#5a5a2e", "بيج": "#d8c3a5", beige: "#d8c3a5", "عسلي": "#c9a36a", honey: "#c9a36a", "رمادي": "#8a8a8a", gray: "#8a8a8a", grey: "#8a8a8a", "بني": "#6b4a2e", brown: "#6b4a2e", "وردي": "#e8a9b8", pink: "#e8a9b8", "أصفر": "#e6c43b", yellow: "#e6c43b", "برتقالي": "#e07b2a", orange: "#e07b2a", "بنفسجي": "#6c4a9c", purple: "#6c4a9c", "كاكي": "#a39a73", khaki: "#a39a73", "عنابي": "#6d1f2f", "نبيذي": "#5b1a2b", "خردلي": "#c79a1b", "ذهبي": "#c9a227", "سماوي": "#7fbfe6", "كريمي": "#efe6d2", "تركوازي": "#2bb3a6", "فضي": "#c0c0c0", "زهري": "#f2b5c4", "موف": "#9b6bb5", "ليموني": "#d7e04b" };
+  const hexOf = (c) => HEX[String(c).trim().toLowerCase()] || HEX[String(c).trim()] || (/^#[0-9a-f]{3,6}$/i.test(String(c).trim()) ? String(c).trim() : "");
   const HANGER = '<svg class="rk-hanger" viewBox="0 0 40 34" aria-hidden="true"><path d="M20 13c0-3.2 3.2-3.6 3.2-7.2a3.5 3.5 0 1 0-6.4 1.8" fill="none" stroke="#6f6f6d" stroke-width="1.7" stroke-linecap="round"/><path d="M20 13 3.4 27.6c-1.1 1-.4 3 1.2 3h30.8c1.6 0 2.3-2 1.2-3L20 13z" fill="none" stroke="#6f6f6d" stroke-width="1.7" stroke-linejoin="round"/></svg>';
   const ARROW = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
 
@@ -25,7 +25,7 @@ if (grid) {
   const cutUrl = (u) => done.get(u) || u;
   // الصورة المعروضة: صورة اللون المختار إن وُجدت، وإلا الصورة الرئيسية، وإلا أول صورة لون
   const imgFor = (p, color) => (color && (p.color_images || {})[color]) || p.image_url || Object.values(p.color_images || {})[0] || "";
-  const cutIt = (img, url) => { cutout(url).then((r) => { if (r && img.isConnected && img.dataset.src === url) { img.src = r.url; img.classList.add("rk-cut"); } }); };
+  const cutIt = (img, url) => { cutout(url).then((r) => { if (r && img.isConnected && img.dataset.key === url) { img.src = r.url; img.classList.add("rk-cut"); } }); };
   const nudge = (slot) => { const s = slot?.querySelector(".rk-swing"); if (!s || reduce) return; s.classList.remove("rk-nudge"); void s.offsetWidth; s.classList.add("rk-nudge"); };
   const cols = () => (innerWidth < 700 ? 3 : 4);
   const slotOf = (id) => [...row.children].find((s) => s.dataset.id === id);
@@ -42,7 +42,7 @@ if (grid) {
   function slotHTML(p, i) {
     const colors = p.colors || [], n = cols();
     const tw = colors.length ? Math.min(colors.length, n) * 30 + 14 + (colors.length > n ? 15 : 0) : 0;
-    return `<div class="rk-slot" data-id="${esc(p.id)}" style="--i:${i};--tw:${tw}px"><div class="rk-fig"><button type="button" class="rk-hit" aria-label="${esc(p.name)}" aria-pressed="false"><span class="rk-swing">${HANGER}${imgFor(p, colorOf[p.id]) ? (u => `<img class="rk-img${done.has(u) ? " rk-cut" : ""}" src="${esc(cutUrl(u))}" data-src="${esc(u)}" alt="${esc(p.name)}" draggable="false">`)(imgFor(p, colorOf[p.id])) : '<span class="rk-ph">✧</span>'}</span></button></div>${colors.length ? `<div class="rk-tags" role="group" aria-label="ألوان القطعة">${tagsHTML(colors)}</div>` : ""}</div>`;
+    return `<div class="rk-slot" data-id="${esc(p.id)}" style="--i:${i};--tw:${tw}px"><div class="rk-fig"><button type="button" class="rk-hit" aria-label="${esc(p.name)}" aria-pressed="false"><span class="rk-swing">${HANGER}${imgFor(p, colorOf[p.id]) ? (u => `<img class="rk-img${done.has(u) ? " rk-cut" : ""}" src="${esc(cutUrl(u))}" data-key="${esc(u)}" alt="${esc(p.name)}" draggable="false">`)(imgFor(p, colorOf[p.id])) : '<span class="rk-ph">✧</span>'}</span></button></div>${colors.length ? `<div class="rk-tags" role="group" aria-label="ألوان القطعة">${tagsHTML(colors)}</div>` : ""}</div>`;
   }
 
   function render() {
@@ -57,31 +57,40 @@ if (grid) {
       row.innerHTML = items.map(slotHTML).join("");
     }
     root.style.setProperty("--tw-max", Math.max(0, ...items.map((p) => ((p.colors || []).length ? Math.min(p.colors.length, cols()) * 30 + 14 + (p.colors.length > cols() ? 15 : 0) : 0))) + "px");
-    row.querySelectorAll(".rk-img:not(.rk-cut)").forEach((im) => cutIt(im, im.dataset.src));
+    row.querySelectorAll(".rk-img:not(.rk-cut)").forEach((im) => cutIt(im, im.dataset.key));
+    Object.keys(colorOf).forEach((id) => colorOf[id] && swapImage(id));
     paint(false); layoutNav();
+  }
+
+  // ما يُعرض للون المختار: صورة اللون إن وُجدت، وإلا تلوين تلقائي للصورة الرئيسية، وإلا الصورة الرئيسية كما هي
+  function target(p, color) {
+    const own = color && (p.color_images || {})[color];
+    if (own) return { key: own, load: () => cutout(own).then((r) => ({ src: cutUrl(own), cut: !!r })) };
+    const base = imgFor(p, ""), hex = color && hexOf(color);
+    if (base && hex) return { key: base + "#" + hex, load: () => tinted(base, hex).then((u) => (u ? { src: u, cut: true } : cutout(base).then((r) => ({ src: cutUrl(base), cut: !!r })))) };
+    return { key: base, load: () => cutout(base).then((r) => ({ src: cutUrl(base), cut: !!r })) };
   }
 
   // تبديل صورة القطعة عند تغيّر اللون: تتلاشى الصورة، تُستبدل، ثم تظهر مع اهتزاز خفيف على الشماعة
   function swapImage(id) {
     const p = items.find((x) => String(x.id) === String(id)), slot = slotOf(id), img = slot?.querySelector(".rk-img");
     if (!p || !img) return;
-    const want = imgFor(p, colorOf[id]); if (!want || img.dataset.src === want) return;
+    const want = target(p, colorOf[id]); if (!want.key || img.dataset.key === want.key) return;
     const token = (img._t = (img._t || 0) + 1);
-    const go = () => {
+    Promise.race([want.load(), new Promise((r) => setTimeout(() => r(null), 2500))]).then((res) => {
       if (img._t !== token) return;
-      const src = cutUrl(want), pre = new Image();
+      const src = res?.src || cutUrl(want.key), pre = new Image();
       pre.onload = pre.onerror = () => {
         if (img._t !== token) return;
         img.classList.add("rk-fade");
         setTimeout(() => {
           if (img._t !== token) return;
-          img.dataset.src = want; img.src = src; img.classList.toggle("rk-cut", done.has(want));
+          img.dataset.key = want.key; img.src = src; img.classList.toggle("rk-cut", !!res?.cut);
           requestAnimationFrame(() => img.classList.remove("rk-fade")); nudge(slot);
         }, reduce ? 0 : 170);
       };
       pre.src = src;
-    };
-    Promise.race([cutout(want), new Promise((r) => setTimeout(r, 1500))]).then(go);
+    });
   }
 
   function paint(scroll) {

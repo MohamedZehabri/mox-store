@@ -5,6 +5,7 @@ const done = new Map();   // url -> blob url الجاهز
 const jobs = new Map();   // url -> Promise
 let chain = Promise.resolve();
 window.MOX_CUT = { done };
+const tints = new Map();  // base|hex -> Promise<blob url|null>
 
 const load = (src) => new Promise((res, rej) => {
   const im = new Image();
@@ -79,3 +80,61 @@ export function cutout(src, { max = 900 } = {}) {
   if (key) jobs.set(key, job);
   return job;
 }
+
+// ===== تلوين القطعة تلقائياً =====
+// يستبدل لون القماش بلون جديد مع الحفاظ على ظلال الطيّات، ويترك الشعارات والطبعات والأزرار بألوانها (لأنها بعيدة عن لون القماش السائد).
+const parseHex = (h) => { h = String(h).trim().replace("#", ""); if (h.length === 3) h = h.replace(/./g, "$&$&"); return /^[0-9a-f]{6}$/i.test(h) ? [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)) : null; };
+const lum = (r, g, b) => 0.299 * r + 0.587 * g + 0.114 * b;
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+
+function tint(im, hex) {
+  const C = parseHex(hex); if (!C) return null;
+  const w = im.naturalWidth, h = im.naturalHeight;
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+  const ctx = cv.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(im, 0, 0);
+  const img = ctx.getImageData(0, 0, w, h), px = img.data;
+  // لون القماش السائد: أكثر خانة لونية تكراراً بين البكسلات المعتمة
+  const bins = new Map();
+  for (let i = 0; i < px.length; i += 16) {
+    if (px[i + 3] < 220) continue;
+    const k = (px[i] >> 4) << 8 | (px[i + 1] >> 4) << 4 | (px[i + 2] >> 4);
+    const e = bins.get(k) || [0, 0, 0, 0]; e[0]++; e[1] += px[i]; e[2] += px[i + 1]; e[3] += px[i + 2]; bins.set(k, e);
+  }
+  let best = null; bins.forEach((e) => { if (!best || e[0] > best[0]) best = e; });
+  if (!best || best[0] < 30) return null;
+  const br = best[1] / best[0], bg = best[2] / best[0], bb = best[3] / best[0], Lm = lum(br, bg, bb);
+  const wC = clamp(lum(C[0], C[1], C[2]) / 255);
+  for (let i = 0; i < px.length; i += 4) {
+    const a = px[i + 3]; if (a < 8) continue;
+    const r = px[i], g = px[i + 1], b = px[i + 2], L = lum(r, g, b), d = L - Lm;
+    const cd = Math.max(Math.abs((r - L) - (br - Lm)), Math.abs((g - L) - (bg - Lm)), Math.abs((b - L) - (bb - Lm)));
+    const wt = clamp(1 - (cd - 28) / 16) * clamp(1 - (Math.abs(d) - 70) / 30);   // 1 = قماش، 0 = طبعة/شعار
+    if (wt <= 0) continue;
+    const f = clamp(1 + d / Math.max(Lm, 90), 0.4, 1.4);
+    for (let k = 0; k < 3; k++) {
+      const mult = C[k] * (wC > 0.6 ? 0.94 : 1) * f, add = C[k] + d * 0.9;
+      const nv = clamp((mult * wC + add * (1 - wC)) / 255) * 255, o = px[i + k];
+      px[i + k] = Math.round(o + (nv - o) * wt);
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  return cv;
+}
+
+// base: رابط الصورة الأصلية. يرجع blob url للقطعة بعد حذف خلفيتها وتلوينها، أو null إن تعذّر (خلفية غير موحدة، لون غير معروف...)
+export function tinted(base, hex) {
+  const key = base + "|" + hex;
+  if (tints.has(key)) return tints.get(key);
+  const job = cutout(base).then(async (r) => {
+    if (!r) return null;
+    try {
+      const cv = tint(await load(r.url), hex); if (!cv) return null;
+      const blob = await new Promise((res) => cv.toBlob(res, "image/png"));
+      return URL.createObjectURL(blob);
+    } catch (e) { return null; }
+  });
+  tints.set(key, job);
+  return job;
+}
+window.MOX_CUT.tint = tinted;

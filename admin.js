@@ -20,7 +20,7 @@ async function loadAll(){await Promise.all([loadProducts(),loadOrders(),loadVide
 async function loadProducts(){const {data,error}=await sb.from("products").select("*").order("created_at",{ascending:false});if(error)return toast("تعذر تحميل المنتجات");adminProducts=data||[];$("#admin-products").innerHTML=(data||[]).map(p=>`<div class="admin-product"><div><strong>${esc(p.name)}</strong><div class="muted">${money(p.price)} • ${esc(p.category||"عام")} • ${p.is_active?"ظاهر":"مخفي"} • ${stockTxt(p)}${(p.sizes||[]).length?" • "+esc(p.sizes.join("/")):""}${(p.colors||[]).length?" • "+esc(p.colors.join("، ")):""}${p.discount_enabled?` • خصم ${Number(p.discount_step)}% (حتى ${Number(p.discount_max)}%)`:""}</div></div><div class="admin-actions"><button class="secondary" data-edit="${p.id}">تعديل</button><button class="secondary" data-toggle="${p.id}" data-active="${p.is_active}">${p.is_active?"إخفاء":"إظهار"}</button><button class="secondary danger" data-delete="${p.id}">حذف</button></div></div>`).join("")||'<p class="muted">لا توجد منتجات بعد.</p>'}
 $("#product-form").onsubmit=async e=>{e.preventDefault();const f=new FormData(e.currentTarget);const p={name:f.get("name").trim(),price:Number(f.get("price")),category:f.get("category").trim()||"عام",image_url:f.get("image_url").trim()||null,description:f.get("description").trim(),is_active:true,...readOpts(e.currentTarget)};const {error}=await withCI(x=>sb.from("products").insert(x),p);$("#product-msg").textContent=error?"تعذر حفظ المنتج: "+error.message:"تمت إضافة المنتج.";if(!error){const pf=$("#product-form");pf.reset();renderCI(pf,{});loadProducts()}};
 $("#admin-products").addEventListener("click",async e=>{const t=e.target.closest("[data-toggle]"),d=e.target.closest("[data-delete]");if(t){const {error}=await sb.from("products").update({is_active:t.dataset.active!=="true"}).eq("id",t.dataset.toggle);if(error)toast("تعذر تحديث المنتج");else loadProducts()}if(d&&confirm("هل تريد حذف هذا المنتج؟")){const {error}=await sb.from("products").delete().eq("id",d.dataset.delete);if(error)toast("تعذر حذف المنتج");else loadProducts()}});
-async function loadOrders(){const {data,error}=await sb.from("orders").select("*").order("created_at",{ascending:false});if(error){$("#orders-body").innerHTML='<tr><td colspan="7">تعذر تحميل الطلبات</td></tr>';return}$("#orders-body").innerHTML=(data||[]).map(o=>`<tr><td>${new Date(o.created_at).toLocaleString("ar-DZ")}</td><td>${esc(o.customer_name)}<br><small>${esc(o.wilaya)} / ${esc(o.commune)}</small></td><td><a href="tel:${esc(o.phone)}">${esc(o.phone)}</a></td><td>${esc(o.address)}<br><small>${esc(o.note||"")}</small></td><td>${(o.items||[]).map(i=>`${esc(i.name)}${i.size?" • "+esc(i.size):""}${i.color?" • "+esc(i.color):""} × ${Number(i.quantity)}${i.price!=null?` (${money(i.price)})`:""}`).join("<br>")}</td><td><strong>${money(o.total)}</strong></td><td><select class="status-select" data-status="${o.id}">${["جديد","قيد التأكيد","قيد التجهيز","تم الشحن","تم التسليم","ملغى"].map(s=>`<option ${o.status===s?"selected":""}>${s}</option>`).join("")}</select></td></tr>`).join("")||'<tr><td colspan="7">لا توجد طلبات حتى الآن.</td></tr>'}
+async function loadOrders(){const {data,error}=await sb.from("orders").select("*").order("created_at",{ascending:false});if(error){$("#orders-body").innerHTML='<tr><td colspan="8">تعذر تحميل الطلبات</td></tr>';return}$("#orders-body").innerHTML=(data||[]).map(o=>`<tr><td>${new Date(o.created_at).toLocaleString("ar-DZ")}</td><td>${esc(o.customer_name)}<br><small>${esc(o.wilaya)} / ${esc(o.commune)}</small></td><td><a href="tel:${esc(o.phone)}">${esc(o.phone)}</a></td><td>${esc(o.address)}<br><small>${esc(o.note||"")}</small></td><td>${(o.items||[]).map(i=>`${esc(i.name)}${i.size?" • "+esc(i.size):""}${i.color?" • "+esc(i.color):""} × ${Number(i.quantity)}${i.price!=null?` (${money(i.price)})`:""}`).join("<br>")}</td><td><strong>${money(o.total)}</strong></td><td><select class="status-select" data-status="${o.id}">${["جديد","قيد التأكيد","قيد التجهيز","تم الشحن","تم التسليم","ملغى"].map(s=>`<option ${o.status===s?"selected":""}>${s}</option>`).join("")}</select></td><td class="ord-act"><label class="chk"><input type="checkbox" data-sel="${o.id}" aria-label="تحديد"></label><button class="secondary danger" data-delord="${o.id}">حذف</button></td></tr>`).join("")||'<tr><td colspan="8">لا توجد طلبات حتى الآن.</td></tr>'}
 $("#orders-body").addEventListener("change",async e=>{const s=e.target.closest("[data-status]");if(!s)return;const {error}=await sb.from("orders").update({status:s.value}).eq("id",s.dataset.status);toast(error?"تعذر تحديث حالة الطلب":"تم تحديث حالة الطلب");if(!error&&s.value==="تم التسليم")notifyMeta(s.dataset.status)});
 // Meta: إرسال Purchase من الخادم مرة واحدة عند التسليم (الخادم يتحقق من الأدمن ومن الحالة)
 async function notifyMeta(orderId){try{const {data:{session}}=await sb.auth.getSession();if(!session)return;const r=await fetch("/api/meta-purchase",{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${session.access_token}`},body:JSON.stringify({order_id:orderId})});if(!r.ok)console.warn("meta-purchase",r.status)}catch(err){console.warn("meta-purchase failed",err)}}
@@ -84,8 +84,17 @@ function renderCI(form,vals){
   box.innerHTML=colors.length?`<div class="ci-title">صورة لكل لون (اختياري): تتغير صورة القطعة في المتجر عند اختيار اللون</div>`+colors.map(c=>`<div class="ci-row" data-color="${esc(c)}"><b>${esc(c)}</b><input class="admin-input" data-ci-url type="url" placeholder="رابط الصورة" value="${esc(cur[c]||"")}"><label class="ci-up">رفع بلا خلفية<input type="file" accept="image/*" hidden></label></div>`).join(""):"";
 }
 async function withCI(run,payload){
-  let r=await run(payload);
-  if(r.error&&/color_images/.test(r.error.message||"")){const {color_images,...rest}=payload;r=await run(rest);if(!r.error)toast("حُفظ المنتج بدون صور الألوان: نفّذ color_images_upgrade.sql في Supabase أولاً")}
+  let r=await run(payload),dropped=false;
+  const want=Object.keys(payload.color_images||{}).length,norm=o=>JSON.stringify(Object.entries(o||{}).sort());
+  if(r.error&&/color_images/.test(r.error.message||"")){const {color_images,...rest}=payload;r=await run(rest);dropped=true}
+  if(!r.error){
+    if(dropped&&want)alert("تم حفظ المنتج، لكن روابط صور الألوان لم تُحفظ لأن قاعدة البيانات تحتاج تحديثاً.\nنفّذ ملف color_images_upgrade.sql في Supabase > SQL Editor ثم أعد الحفظ.");
+    else{
+      const row=Array.isArray(r.data)?r.data[0]:null;
+      if(row&&"color_images" in row&&norm(row.color_images)!==norm(payload.color_images))alert("تنبيه: لم تُحفظ روابط صور الألوان كاملة. أعد المحاولة.");
+      else if(want)toast("تم الحفظ • روابط صور الألوان المحفوظة: "+want);
+    }
+  }
   return r;
 }
 ["#product-form","#edit-form"].forEach(sel=>{
@@ -108,3 +117,29 @@ document.addEventListener("change",async e=>{
   target.value=sb.storage.from(CIB).getPublicUrl(path).data.publicUrl;
   toast(cut?"تم الرفع وحذف الخلفية":"تم الرفع (الخلفية غير موحدة فلم تُحذف)");
 });
+
+// ===== حذف الطلبات =====
+(()=>{
+  const body=$("#orders-body");if(!body)return;
+  const st=document.createElement("style");
+  st.textContent=".ord-bar{display:flex;gap:14px;align-items:center;margin:0 0 12px;font-size:13px}.ord-act{white-space:nowrap}.ord-act .chk{margin-inline-end:8px;display:inline-flex}.ord-bar button:disabled{opacity:.4;cursor:not-allowed}";
+  document.head.append(st);
+  const bar=document.createElement("div");bar.className="ord-bar";
+  bar.innerHTML='<label class="chk"><input type="checkbox" id="ord-all"> تحديد الكل</label><button type="button" class="secondary danger" id="ord-del-sel" disabled>حذف المحدد</button>';
+  body.closest(".table-wrap").before(bar);
+  const sel=()=>[...body.querySelectorAll("[data-sel]:checked")].map(c=>c.dataset.sel);
+  const refresh=()=>{const n=sel().length,b=$("#ord-del-sel");b.disabled=!n;b.textContent=n?`حذف المحدد (${n})`:"حذف المحدد";const all=body.querySelectorAll("[data-sel]");$("#ord-all").checked=!!all.length&&n===all.length};
+  async function delOrders(ids){
+    if(!ids.length)return;
+    if(!confirm(ids.length===1?"حذف هذا الطلب نهائياً؟ لا يمكن التراجع.":`حذف ${ids.length} طلبات نهائياً؟ لا يمكن التراجع.`))return;
+    const {data,error}=await sb.from("orders").delete().in("id",ids).select("id");
+    if(error||!data||!data.length){alert("تعذر حذف الطلبات.\nنفّذ ملف orders_delete_upgrade.sql في Supabase > SQL Editor ثم أعد المحاولة."+(error?"\n"+error.message:""));return}
+    toast(data.length<ids.length?`حُذف ${data.length} من ${ids.length}`:`تم حذف ${data.length} ${data.length===1?"طلب":"طلبات"}`);
+    loadOrders();
+  }
+  body.addEventListener("click",e=>{const d=e.target.closest("[data-delord]");if(d)delOrders([d.dataset.delord])});
+  body.addEventListener("change",e=>{if(e.target.closest("[data-sel]"))refresh()});
+  $("#ord-all").addEventListener("change",e=>{body.querySelectorAll("[data-sel]").forEach(c=>c.checked=e.target.checked);refresh()});
+  $("#ord-del-sel").addEventListener("click",()=>delOrders(sel()));
+  new MutationObserver(refresh).observe(body,{childList:true});
+})();
