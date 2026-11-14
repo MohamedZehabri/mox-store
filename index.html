@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="rack.css">
+  <meta name="description" content="MOX — علامة أزياء جزائرية. اختر قطعتك من الـ rack، والدفع عند الاستلام مع توصيل إلى مختلف الولايات.">
 </head>
 <body>
 <header class="topbar">
@@ -16,19 +18,12 @@
   <nav><a href="#products">التشكيلة</a><a href="#about">عن MOX</a><a href="#contact">تواصل معنا</a></nav>
   <button class="cart-button" id="open-cart">السلة <span id="cart-count">0</span></button>
 </header>
-<section class="hero">
-  <div class="hero-copy">
-    <span class="eyebrow">MOX / THE NEW STANDARD</span>
-    <h1>أناقتك تبدأ<br><em>من اختيارك</em></h1>
-    <p>قطع مختارة بعناية، بتفاصيل هادئة وحضور لا يحتاج إلى مبالغة. اكتشف أسلوبك مع MOX.</p>
-    <a class="primary-link" href="#products">اكتشف التشكيلة <span>←</span></a>
-    <div class="trust-row"><span>✓ الدفع عند الاستلام</span><span>✓ توصيل إلى مختلف ولايات الجزائر</span></div>
+<section class="rack-hero" aria-label="تشكيلة MOX">
+  <div class="rk-stage" id="rk-stage" tabindex="0" aria-roledescription="carousel">
+    <button type="button" class="rk-arrow rk-prev" id="rk-prev" aria-label="القطعة السابقة"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 3 5 8l5 5"/></svg></button>
+    <button type="button" class="rk-arrow rk-next" id="rk-next" aria-label="القطعة التالية"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m6 3 5 5-5 5"/></svg></button>
   </div>
-  <div class="hero-art">
-    <video autoplay muted loop playsinline preload="auto" style="width:100%;height:100%;max-height:520px;object-fit:cover;border-radius:24px;display:block;">
-      <source src="ad.mp4.mp4" type="video/mp4">
-    </video>
-  </div>
+  <div class="rk-info" id="rk-info" aria-live="polite"><h1 id="rk-name">MOX</h1><p id="rk-price"></p><p id="rk-note"></p><button type="button" class="rk-open" id="rk-open">التفاصيل والتوفر</button></div>
 </section>
 <main>
   <section class="section-head" id="products"><div><span class="eyebrow">THE MOX EDIT</span><h2>قطع تستحق مكاناً في خزانتك</h2></div><div class="search-wrap"><input id="search" type="search" placeholder="ابحث عن قطعة..."></div></section>

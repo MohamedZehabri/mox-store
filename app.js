@@ -4,6 +4,7 @@ import { loadCharts, openSmartFit } from "./smartfit.js";
 import { openPDP } from "./pdp.js";
 import "./brand-fx.js";
 import "./flair.js";
+import "./rack.js";
 import "./smartcart.js";
 import "./assistant.js";
 import { trackPageView, trackViewContent, trackAddToCart, trackInitiateCheckout, trackLead, getOrderMeta } from "./meta.js";
@@ -98,7 +99,7 @@ async function loadProducts(){
  else {const {data,error}=await supabase.from("products").select("*").eq("is_active",true).order("created_at",{ascending:false});if(error){console.error(error);toast("تعذر تحميل المنتجات");products=[];ok=false}else products=data||[]}
  if(supabase&&ok)charts=await loadCharts(supabase);
  renderCategories();renderProducts();
- if(ok)sanitizeCart();else renderCart();
+ if(ok)sanitizeCart();else renderCart();document.dispatchEvent(new CustomEvent("mox:products"));
 }
 $("#product-grid").addEventListener("click",e=>{
  const b=e.target.closest("[data-add]");if(!b)return;
@@ -161,7 +162,7 @@ $("#checkout-form").addEventListener("submit",async e=>{
  finally{btn.disabled=false;btn.textContent="تأكيد الطلب"}
 });
 $("#wilaya").addEventListener("change",updateShipping);$("#delivery-type").addEventListener("change",updateShipping);
-window.MOX={cartLines,products:()=>products,unitPrice,maxFor,productQty,money};
+window.MOX={cartLines,products:()=>products,unitPrice,maxFor,productQty,money,open(id){const sel=()=>document.querySelector(`.product-card[data-pid="${CSS.escape(String(id))}"]`);let c=sel();if(!c){selectedCategory="الكل";$("#search").value="";renderCategories();renderProducts();c=sel()}const p=prodOf(id);if(c&&p){trackViewContent(p);openPDP({product:p,card:c,chart:charts[p.id]||[],supabase})}}};
 renderCart();loadProducts();loadRates();
 
 async function loadHeroVideos(){
