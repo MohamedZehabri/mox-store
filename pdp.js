@@ -18,7 +18,20 @@ function swapImg(p, color) {
   const own = (p.color_images || {})[color], hex = HEX[String(color).trim().toLowerCase()] || HEX[String(color).trim()];
   const key = own || (hex && p.image_url ? p.image_url + "#" + hex : p.image_url); if (!key || im.dataset.u === key) return;
   im.dataset.u = key;
-  const apply = (src, cut) => { if (im.dataset.u !== key) return; const pre = new Image(); im.style.transition = "opacity .2s"; im.style.opacity = 0; pre.onload = pre.onerror = () => { if (im.dataset.u !== key) return; im.src = src; im.style.objectFit = cut ? "contain" : ""; im.style.opacity = 1; }; pre.src = src; };
+  // الصورة القديمة تتلاشى وتضبب فوق الجديدة بدل استبدال مفاجئ
+  const apply = (src, cut) => {
+    if (im.dataset.u !== key) return;
+    const pre = new Image();
+    pre.onload = pre.onerror = () => {
+      if (im.dataset.u !== key) return;
+      const g = im.cloneNode(false); g.removeAttribute("data-u"); g.alt = ""; g.setAttribute("aria-hidden", "true");
+      g.style.cssText = "position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:1;filter:blur(0);transition:opacity .7s ease,filter .7s ease;object-fit:" + (im.style.objectFit || "cover");
+      im.parentNode.append(g); im.src = src; im.style.objectFit = cut ? "contain" : ""; im.style.opacity = 1;
+      requestAnimationFrame(() => requestAnimationFrame(() => { g.style.opacity = 0; g.style.filter = "blur(6px)"; }));
+      setTimeout(() => g.remove(), 900);
+    };
+    pre.src = src;
+  };
   const M = window.MOX_CUT;
   if (own) { apply(M?.done?.get(own) || own, M?.done?.has(own)); }
   else if (hex && p.image_url && M?.tint) { M.tint(p.image_url, hex).then((u) => { if (u) apply(u, true); }); }

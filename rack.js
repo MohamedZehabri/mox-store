@@ -26,7 +26,7 @@ if (grid) {
   // الصورة المعروضة: صورة اللون المختار إن وُجدت، وإلا الصورة الرئيسية، وإلا أول صورة لون
   const imgFor = (p, color) => (color && (p.color_images || {})[color]) || p.image_url || Object.values(p.color_images || {})[0] || "";
   const cutIt = (img, url) => { cutout(url).then((r) => { if (r && img.isConnected && img.dataset.key === url) { img.src = r.url; img.classList.add("rk-cut"); } }); };
-  const nudge = (slot) => { const s = slot?.querySelector(".rk-swing"); if (!s || reduce) return; s.classList.remove("rk-nudge"); void s.offsetWidth; s.classList.add("rk-nudge"); };
+  const nudge = (slot, strong) => { const s = slot?.querySelector(".rk-swing"); if (!s || reduce) return; s.classList.remove("rk-nudge", "rk-swap"); void s.offsetWidth; s.classList.add(strong ? "rk-swap" : "rk-nudge"); };
   const cols = () => (innerWidth < 700 ? 3 : 4);
   const slotOf = (id) => [...row.children].find((s) => s.dataset.id === id);
   const cardOf = (id) => grid.querySelector(`.product-card[data-pid="${CSS.escape(String(id))}"]`);
@@ -80,17 +80,24 @@ if (grid) {
     Promise.race([want.load(), new Promise((r) => setTimeout(() => r(null), 2500))]).then((res) => {
       if (img._t !== token) return;
       const src = res?.src || cutUrl(want.key), pre = new Image();
-      pre.onload = pre.onerror = () => {
-        if (img._t !== token) return;
-        img.classList.add("rk-fade");
-        setTimeout(() => {
-          if (img._t !== token) return;
-          img.dataset.key = want.key; img.src = src; img.classList.toggle("rk-cut", !!res?.cut);
-          requestAnimationFrame(() => img.classList.remove("rk-fade")); nudge(slot);
-        }, reduce ? 0 : 170);
-      };
+      pre.onload = pre.onerror = () => { if (img._t === token) morph(img, src, !!res?.cut, want.key, slot); };
       pre.src = src;
     });
+  }
+
+  // انتقال حيّ: الصورة الجديدة تُوضع تحت القديمة مباشرة، والقديمة تتلاشى وتضبب فوقها، فيبدو اللون كأنه يتسرّب داخل القطعة،
+  // بينما تتأرجح القطعة على الشماعة. لا يوجد لحظة تختفي فيها القطعة.
+  function morph(img, src, cut, key, slot) {
+    if (reduce) { img.dataset.key = key; img.src = src; img.classList.toggle("rk-cut", cut); return; }
+    const ghost = img.cloneNode(false);
+    ghost.className = img.className.replace(/rk-enter/g, "") + " rk-ghost"; ghost.removeAttribute("data-key"); ghost.alt = ""; ghost.setAttribute("aria-hidden", "true");
+    ghost.style.top = img.offsetTop + "px"; ghost.style.height = img.offsetHeight + "px";
+    img.parentNode.append(ghost);
+    img.dataset.key = key; img.src = src; img.classList.toggle("rk-cut", cut);
+    img.classList.remove("rk-enter"); void img.offsetWidth; img.classList.add("rk-enter");
+    nudge(slot, true);
+    const kill = () => ghost.remove();
+    ghost.addEventListener("animationend", kill); setTimeout(kill, 1400);
   }
 
   function paint(scroll) {
@@ -137,7 +144,7 @@ if (grid) {
   function select(id) {
     sel = id ? String(id) : ""; paint(true);
     const p = items.find((x) => String(x.id) === sel);
-    if (p) { nudge(slotOf(sel)); Object.values(p.color_images || {}).forEach((u) => cutout(u)); } // تجهيز صور الألوان مسبقاً
+    if (p) { nudge(slotOf(sel)); Object.values(p.color_images || {}).forEach((u) => cutout(u)); const base = imgFor(p, ""); (p.colors || []).forEach((c, i) => { const h = hexOf(c); if (h && base && !(p.color_images || {})[c]) setTimeout(() => tinted(base, h), 200 + i * 180); }); } // تجهيز صور الألوان مسبقاً
   }
   function step(dir) {
     if (sel) { const i = items.findIndex((p) => String(p.id) === sel); select(items[(i + dir + items.length) % items.length].id); }
@@ -158,7 +165,7 @@ if (grid) {
     if (t.closest(".rk-next")) return step(1);
     if (t.closest(".rk-more")) return openDetails();
     const tag = t.closest(".rk-tag");
-    if (tag) { const id = tag.closest(".rk-slot").dataset.id; colorOf[id] = colorOf[id] === tag.dataset.color ? "" : tag.dataset.color; paint(false); return swapImage(id); }
+    if (tag) { const id = tag.closest(".rk-slot").dataset.id; colorOf[id] = colorOf[id] === tag.dataset.color ? "" : tag.dataset.color; paint(false); if (!reduce) { tag.classList.remove("rk-tswing"); void tag.offsetWidth; tag.classList.add("rk-tswing"); } return swapImage(id); }
     const hit = t.closest(".rk-hit");
     if (hit) { const id = hit.closest(".rk-slot").dataset.id; return id === sel ? openDetails() : select(id); }
     if (sel && (t === track || t === row || t === root)) select("");
