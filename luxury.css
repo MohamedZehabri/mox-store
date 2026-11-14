@@ -87,3 +87,10 @@ body{font-family:"Cairo","Helvetica Neue",Arial,sans-serif;letter-spacing:.2px}
 .hero-art:has(video){height:auto!important;min-height:0}
 .hero{position:relative;z-index:1}.fx-marquee{position:relative;z-index:3;clear:both}
 @media(max-width:850px){.hero-art:has(video){padding:0 0 4px}.hero-video{width:min(240px,66vw)}}
+
+/* MOX: larger logo in the top bar */
+.topbar{height:92px}
+.topbar .brand{gap:14px;font-size:30px;letter-spacing:4px}
+.topbar .brand-mark{width:54px;height:54px}
+@media(max-width:850px){.topbar{height:82px}.topbar .brand{font-size:26px;gap:12px}.topbar .brand-mark{width:48px;height:48px}}
+@media(max-width:560px){.topbar{height:74px}.topbar .brand{font-size:22px;gap:10px;letter-spacing:3px}.topbar .brand-mark{width:42px;height:42px}}
