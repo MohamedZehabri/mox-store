@@ -1,65 +1,189 @@
-// MOX: hero as a clothing rack. Reads the real products loaded by app.js (window.MOX) and opens the existing PDP.
-const $ = (s) => document.querySelector(s);
-const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const reduce = matchMedia("(prefers-reduced-motion:reduce)").matches;
-const stage = $("#rk-stage"), box = $("#rk-info");
-const DEFS = '<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><linearGradient id="mx-wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a553a"/><stop offset=".45" stop-color="#5a3322"/><stop offset="1" stop-color="#2e1a11"/></linearGradient><linearGradient id="mx-metal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4f5f6"/><stop offset=".5" stop-color="#8d9296"/><stop offset="1" stop-color="#d9dcde"/></linearGradient></defs></svg>';
-const HANGER = '<svg class="rk-hanger" viewBox="0 0 120 80" aria-hidden="true"><path d="M60 41V23a8.5 8.5 0 1 1 8.5-8.5" fill="none" stroke="url(#mx-metal)" stroke-width="2.4" stroke-linecap="round"/><rect x="57" y="36" width="6" height="9" rx="1.6" fill="url(#mx-metal)"/><path d="M60 43C50 43 27 52 9 62c-5 3-5 9 1 10 6 1 12-4 18-7 14-7 24-11 32-11s18 4 32 11c6 3 12 8 18 7 6-1 6-7 1-10C93 52 70 43 60 43Z" fill="url(#mx-wood)"/><path d="M60 44.2C51 44.4 29 53 13 61.5" fill="none" stroke="#fff" stroke-opacity=".28" stroke-width=".9" stroke-linecap="round"/></svg>';
-if (stage) stage.insertAdjacentHTML("afterbegin", DEFS);
-let list = [], items = [], sel = 0, shown = null, first = true, moved = false;
+// MOX Rack: يعرض منتجات المتجر الحقيقية على شماعة. لا يغيّر منطق السلة أو المخزون أو الخصم أو Meta:
+// يقرأ بطاقات #product-grid التي يرسمها app.js (فتبقى البحث والتصنيفات كما هي)، وعند طلب التفاصيل يضغط على البطاقة الأصلية
+// تماماً كما يفعل assistant.js وsmartcart.js، فتفتح صفحة المنتج (PDP) الموجودة.
+import { cutout, tinted } from "./cutout.js";
+const grid = document.querySelector("#product-grid");
+if (grid) {
+  const reduce = matchMedia("(prefers-reduced-motion:reduce)").matches;
+  const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const money = (n) => (window.MOX?.money ? window.MOX.money(n) : `${Number(n || 0).toLocaleString("fr-DZ")} دج`);
+  const HEX = { "أسود": "#111", black: "#111", "أبيض": "#fff", white: "#fff", "أحمر": "#c0262d", red: "#c0262d", "أزرق": "#2a5db0", blue: "#2a5db0", "كحلي": "#1b2a4a", navy: "#1b2a4a", "أخضر": "#2f7d4f", green: "#2f7d4f", "زيتي": "#5a5a2e", olive: "#5a5a2e", "بيج": "#d8c3a5", beige: "#d8c3a5", "عسلي": "#c9a36a", honey: "#c9a36a", "رمادي": "#8a8a8a", gray: "#8a8a8a", grey: "#8a8a8a", "بني": "#6b4a2e", brown: "#6b4a2e", "وردي": "#e8a9b8", pink: "#e8a9b8", "أصفر": "#e6c43b", yellow: "#e6c43b", "برتقالي": "#e07b2a", orange: "#e07b2a", "بنفسجي": "#6c4a9c", purple: "#6c4a9c", "كاكي": "#a39a73", khaki: "#a39a73", "عنابي": "#6d1f2f", "نبيذي": "#5b1a2b", "خردلي": "#c79a1b", "ذهبي": "#c9a227", "سماوي": "#7fbfe6", "كريمي": "#efe6d2", "تركوازي": "#2bb3a6", "فضي": "#c0c0c0", "زهري": "#f2b5c4", "موف": "#9b6bb5", "ليموني": "#d7e04b" };
+  const hexOf = (c) => HEX[String(c).trim().toLowerCase()] || HEX[String(c).trim()] || (/^#[0-9a-f]{3,6}$/i.test(String(c).trim()) ? String(c).trim() : "");
+  const HANGER = '<svg class="rk-hanger" viewBox="0 0 40 34" aria-hidden="true"><path d="M20 13c0-3.2 3.2-3.6 3.2-7.2a3.5 3.5 0 1 0-6.4 1.8" fill="none" stroke="#6f6f6d" stroke-width="1.7" stroke-linecap="round"/><path d="M20 13 3.4 27.6c-1.1 1-.4 3 1.2 3h30.8c1.6 0 2.3-2 1.2-3L20 13z" fill="none" stroke="#6f6f6d" stroke-width="1.7" stroke-linejoin="round"/></svg>';
+  const ARROW = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
 
-const gap = () => (innerWidth < 600 ? { a: 140, b: 82, n: 2 } : innerWidth < 1000 ? { a: 215, b: 126, n: 3 } : { a: 300, b: 172, n: 4 });
-function layout() {
-  const g = gap();
-  items.forEach((el, i) => {
-    const d = i - sel, a = Math.abs(d), x = d === 0 ? 0 : Math.sign(d) * (g.a + (a - 1) * g.b);
-    const s = d === 0 ? 1 : Math.max(0.52, 0.76 - 0.05 * (a - 1));
-    el.style.transform = `translate3d(${x}px,0,0) scale(${s})`;
-    el.style.opacity = a > g.n ? 0 : d === 0 ? 1 : Math.max(0.5, 0.95 - 0.12 * a);
-    el.style.zIndex = 20 - a; el.style.pointerEvents = a > g.n ? "none" : "auto"; el.tabIndex = a > g.n ? -1 : 0;
-    el.setAttribute("aria-current", d === 0 ? "true" : "false");
+  const root = document.createElement("section");
+  root.className = "rk"; root.id = "rack"; root.setAttribute("aria-label", "MOX");
+  root.innerHTML = `<button type="button" class="rk-nav rk-prev" aria-label="السابق" hidden>${ARROW("m15 5-7 7 7 7")}</button><div class="rk-track" tabindex="0"><div class="rk-row"></div></div><button type="button" class="rk-nav rk-next" aria-label="التالي" hidden>${ARROW("m9 5 7 7-7 7")}</button><div class="rk-info" aria-live="polite"></div>`;
+  grid.before(root); grid.classList.add("rk-src");
+  const track = root.querySelector(".rk-track"), row = root.querySelector(".rk-row"), infoEl = root.querySelector(".rk-info");
+  const prevBtn = root.querySelector(".rk-prev"), nextBtn = root.querySelector(".rk-next");
+
+  let items = [], sel = "", raf = 0;
+  const colorOf = {};
+  const done = window.MOX_CUT.done;
+  const cutUrl = (u) => done.get(u) || u;
+  // الصورة المعروضة: صورة اللون المختار إن وُجدت، وإلا الصورة الرئيسية، وإلا أول صورة لون
+  const imgFor = (p, color) => (color && (p.color_images || {})[color]) || p.image_url || Object.values(p.color_images || {})[0] || "";
+  const cutIt = (img, url) => { cutout(url).then((r) => { if (r && img.isConnected && img.dataset.key === url) { img.src = r.url; img.classList.add("rk-cut"); } }); };
+  const nudge = (slot) => { const s = slot?.querySelector(".rk-swing"); if (!s || reduce) return; s.classList.remove("rk-nudge"); void s.offsetWidth; s.classList.add("rk-nudge"); };
+  const cols = () => (innerWidth < 700 ? 3 : 4);
+  const slotOf = (id) => [...row.children].find((s) => s.dataset.id === id);
+  const cardOf = (id) => grid.querySelector(`.product-card[data-pid="${CSS.escape(String(id))}"]`);
+
+  function tagsHTML(colors) {
+    const n = cols();
+    return colors.map((c, i) => {
+      const col = i % n, r = Math.floor(i / n), h = hexOf(c);
+      const d = 16 + (col % 2) * 14 + r * 52;
+      return `<button type="button" class="rk-tag" data-color="${esc(c)}" aria-label="${esc(c)}" aria-pressed="false" style="--c:${col};--r:${r ? 1 : 0};--d:${d}px"><i class="rk-str"></i><b class="rk-card"${h ? ` style="--cc:${h}"` : ""}>${h ? "" : esc(String(c).trim().slice(0, 3))}</b></button>`;
+    }).join("");
+  }
+  function slotHTML(p, i) {
+    const colors = p.colors || [], n = cols();
+    const tw = colors.length ? Math.min(colors.length, n) * 30 + 14 + (colors.length > n ? 15 : 0) : 0;
+    return `<div class="rk-slot" data-id="${esc(p.id)}" style="--i:${i};--tw:${tw}px"><div class="rk-fig"><button type="button" class="rk-hit" aria-label="${esc(p.name)}" aria-pressed="false"><span class="rk-swing">${HANGER}${imgFor(p, colorOf[p.id]) ? (u => `<img class="rk-img${done.has(u) ? " rk-cut" : ""}" src="${esc(cutUrl(u))}" data-key="${esc(u)}" alt="${esc(p.name)}" draggable="false">`)(imgFor(p, colorOf[p.id])) : '<span class="rk-ph">✧</span>'}</span></button></div>${colors.length ? `<div class="rk-tags" role="group" aria-label="ألوان القطعة">${tagsHTML(colors)}</div>` : ""}</div>`;
+  }
+
+  function render() {
+    const list = window.MOX?.products?.() || [];
+    const byId = new Map(list.map((p) => [String(p.id), p]));
+    items = [...grid.querySelectorAll(".product-card[data-pid]")].map((c) => byId.get(c.dataset.pid)).filter(Boolean);
+    if (!items.length) {
+      sel = "";
+      row.innerHTML = `<div class="rk-empty">${esc(grid.textContent.trim())}</div>`;
+    } else {
+      if (sel && !items.some((p) => String(p.id) === sel)) sel = "";
+      row.innerHTML = items.map(slotHTML).join("");
+    }
+    root.style.setProperty("--tw-max", Math.max(0, ...items.map((p) => ((p.colors || []).length ? Math.min(p.colors.length, cols()) * 30 + 14 + (p.colors.length > cols() ? 15 : 0) : 0))) + "px");
+    row.querySelectorAll(".rk-img:not(.rk-cut)").forEach((im) => cutIt(im, im.dataset.key));
+    Object.keys(colorOf).forEach((id) => colorOf[id] && swapImage(id));
+    paint(false); layoutNav();
+  }
+
+  // ما يُعرض للون المختار: صورة اللون إن وُجدت، وإلا تلوين تلقائي للصورة الرئيسية، وإلا الصورة الرئيسية كما هي
+  function target(p, color) {
+    const own = color && (p.color_images || {})[color];
+    if (own) return { key: own, load: () => cutout(own).then((r) => ({ src: cutUrl(own), cut: !!r })) };
+    const base = imgFor(p, ""), hex = color && hexOf(color);
+    if (base && hex) return { key: base + "#" + hex, load: () => tinted(base, hex).then((u) => (u ? { src: u, cut: true } : cutout(base).then((r) => ({ src: cutUrl(base), cut: !!r })))) };
+    return { key: base, load: () => cutout(base).then((r) => ({ src: cutUrl(base), cut: !!r })) };
+  }
+
+  // تبديل صورة القطعة عند تغيّر اللون: تتلاشى الصورة، تُستبدل، ثم تظهر مع اهتزاز خفيف على الشماعة
+  function swapImage(id) {
+    const p = items.find((x) => String(x.id) === String(id)), slot = slotOf(id), img = slot?.querySelector(".rk-img");
+    if (!p || !img) return;
+    const want = target(p, colorOf[id]); if (!want.key || img.dataset.key === want.key) return;
+    const token = (img._t = (img._t || 0) + 1);
+    Promise.race([want.load(), new Promise((r) => setTimeout(() => r(null), 2500))]).then((res) => {
+      if (img._t !== token) return;
+      const src = res?.src || cutUrl(want.key), pre = new Image();
+      pre.onload = pre.onerror = () => {
+        if (img._t !== token) return;
+        img.classList.add("rk-fade");
+        setTimeout(() => {
+          if (img._t !== token) return;
+          img.dataset.key = want.key; img.src = src; img.classList.toggle("rk-cut", !!res?.cut);
+          requestAnimationFrame(() => img.classList.remove("rk-fade")); nudge(slot);
+        }, reduce ? 0 : 170);
+      };
+      pre.src = src;
+    });
+  }
+
+  function paint(scroll) {
+    root.classList.toggle("rk--sel", !!sel);
+    [...row.children].forEach((s) => {
+      const on = !!sel && s.dataset.id === sel;
+      s.classList.toggle("is-sel", on);
+      s.querySelector(".rk-hit")?.setAttribute("aria-pressed", on);
+      s.querySelectorAll(".rk-tag").forEach((t) => { const a = on && colorOf[sel] === t.dataset.color; t.classList.toggle("on", a); t.setAttribute("aria-pressed", a); });
+    });
+    info(); layoutNav();
+    if (scroll && sel) follow(slotOf(sel), 720);
+  }
+
+  function info() {
+    const p = items.find((x) => String(x.id) === sel);
+    if (!p) { infoEl.innerHTML = items.length ? '<p class="rk-hint">اختر قطعة من الشماعة لمعاينتها</p>' : ""; return; }
+    const out = !cardOf(p.id)?.querySelector("[data-add]");
+    infoEl.innerHTML = `<h3 class="rk-name" dir="auto">${esc(p.name)}</h3><p class="rk-price">${money(p.price)}</p>${(p.colors || []).length ? `<p class="rk-color">${colorOf[sel] ? `<span>اللون</span> <b>${esc(colorOf[sel])}</b>` : ""}</p>` : ""}${out ? '<p class="rk-out">نفدت الكمية</p>' : ""}<button type="button" class="rk-more">التفاصيل والمقاسات</button>`;
+  }
+
+  function layoutNav() {
+    const many = items.length > 1;
+    const overflow = track.scrollWidth - track.clientWidth > 4;
+    const show = many && (!!sel || overflow);
+    prevBtn.hidden = nextBtn.hidden = !show;
+  }
+
+  // يبقي القطعة المختارة في منتصف المسار أثناء توسّعها
+  function center(slot) {
+    if (!slot) return;
+    const t = track.getBoundingClientRect(), f = slot.getBoundingClientRect();
+    track.scrollLeft += (f.left + f.width / 2) - (t.left + t.width / 2);
+  }
+  function follow(slot, ms) {
+    cancelAnimationFrame(raf);
+    if (reduce) { center(slot); return; }
+    const t0 = performance.now();
+    const tick = () => { center(slot); if (performance.now() - t0 < ms) raf = requestAnimationFrame(tick); };
+    tick();
+  }
+  ["touchstart", "wheel", "pointerdown"].forEach((ev) => track.addEventListener(ev, () => cancelAnimationFrame(raf), { passive: true }));
+
+  function select(id) {
+    sel = id ? String(id) : ""; paint(true);
+    const p = items.find((x) => String(x.id) === sel);
+    if (p) { nudge(slotOf(sel)); Object.values(p.color_images || {}).forEach((u) => cutout(u)); } // تجهيز صور الألوان مسبقاً
+  }
+  function step(dir) {
+    if (sel) { const i = items.findIndex((p) => String(p.id) === sel); select(items[(i + dir + items.length) % items.length].id); }
+    else track.scrollBy({ left: dir * track.clientWidth * 0.8, behavior: reduce ? "auto" : "smooth" });
+  }
+  function openDetails() {
+    const card = cardOf(sel); if (!card) return;
+    const c = colorOf[sel];
+    card.click(); // يفتح PDP الأصلي
+    if (c) [...document.querySelectorAll(".pdp-bd [data-c]")].find((b) => b.dataset.c === c)?.click();
+  }
+
+  let dragged = false;
+  root.addEventListener("click", (e) => {
+    if (dragged) { dragged = false; return; }
+    const t = e.target;
+    if (t.closest(".rk-prev")) return step(-1);
+    if (t.closest(".rk-next")) return step(1);
+    if (t.closest(".rk-more")) return openDetails();
+    const tag = t.closest(".rk-tag");
+    if (tag) { const id = tag.closest(".rk-slot").dataset.id; colorOf[id] = colorOf[id] === tag.dataset.color ? "" : tag.dataset.color; paint(false); return swapImage(id); }
+    const hit = t.closest(".rk-hit");
+    if (hit) { const id = hit.closest(".rk-slot").dataset.id; return id === sel ? openDetails() : select(id); }
+    if (sel && (t === track || t === row || t === root)) select("");
   });
-  info();
-}
-function info() {
-  const p = list[sel]; if (!p || shown === p.id) return; shown = p.id;
-  const fill = () => {
-    const out = p.stock != null && Number(p.stock) <= 0, low = p.stock != null && !out && Number(p.stock) <= 5;
-    $("#rk-name").textContent = p.name; $("#rk-price").textContent = window.MOX.money(p.price);
-    $("#rk-note").textContent = out ? "نفدت الكمية" : low ? `باقي ${Number(p.stock)} قطع فقط` : "";
-    box.classList.remove("swap");
-  };
-  box.classList.add("swap"); reduce || first ? fill() : setTimeout(fill, 170);
-}
-function go(n) { if (!list.length) return; sel = Math.max(0, Math.min(list.length - 1, n)); layout(); }
-function build() {
-  if (!stage || !window.MOX) return;
-  const keep = list[sel]?.id; list = window.MOX.products();
-  if (!list.length) { stage.querySelectorAll(".rk-item").forEach((e) => e.remove()); items = []; $("#rk-name").textContent = "لا توجد منتجات حالياً"; return; }
-  sel = Math.max(0, list.findIndex((p) => p.id === keep)); shown = null;
-  stage.querySelectorAll(".rk-item").forEach((e) => e.remove());
-  stage.insertAdjacentHTML("beforeend", list.map((p, i) => `<button type="button" class="rk-item${first ? " rk-in" : ""}" data-i="${i}" style="--d:${i * 70}ms;${first ? "opacity:0;transform:translate3d(0,-28px,0) scale(.5)" : ""}" aria-label="${esc(p.name)}"><span class="rk-sway">${HANGER}${p.image_url ? `<img src="${esc(p.image_url)}" alt="${esc(p.name)}" draggable="false" ${i < 5 ? "" : 'loading="lazy"'} decoding="async">` : '<span class="rk-ph">MOX</span>'}</span></button>`).join(""));
-  items = [...stage.querySelectorAll(".rk-item")];
-  // Real silhouette shadow only for cut-out images (transparent corners); white-background photos stay flat so no box shadow appears.
-  items.forEach((el, i) => { const src = list[i].image_url; if (!src) return; const t = new Image(); t.crossOrigin = "anonymous";
-    t.onload = () => { try { const c = document.createElement("canvas"); c.width = 24; c.height = 32; const x = c.getContext("2d", { willReadFrequently: true }); x.drawImage(t, 0, 0, 24, 32); const a = [3, 3 + 4 * 23, 4 * 24 * 31 + 3, 4 * (24 * 32 - 1) + 3].map((k) => x.getImageData(0, 0, 24, 32).data[k]); if (a.every((v) => v < 40)) el.classList.add("rk-cut"); } catch (e) { /* cross-origin: keep flat */ } };
-    t.src = src; });
-  requestAnimationFrame(() => requestAnimationFrame(() => { layout(); if (first) { first = false; setTimeout(() => items.forEach((e) => e.classList.remove("rk-in")), 1400); } }));
-}
-document.addEventListener("mox:products", build);
-if (stage) {
-  stage.addEventListener("click", (e) => { if (moved) return; const b = e.target.closest(".rk-item"); if (!b) return; const i = +b.dataset.i; i === sel ? window.MOX.open(list[i].id) : go(i); });
-  $("#rk-prev").onclick = () => go(sel - 1); $("#rk-next").onclick = () => go(sel + 1);
-  $("#rk-open").onclick = () => list[sel] && window.MOX.open(list[sel].id);
-  stage.addEventListener("keydown", (e) => { if (e.key === "ArrowLeft") go(sel - 1); if (e.key === "ArrowRight") go(sel + 1); });
-  let x0 = null;
-  stage.addEventListener("pointerdown", (e) => { x0 = e.clientX; moved = false; });
-  stage.addEventListener("pointerup", (e) => { if (x0 == null) return; const dx = e.clientX - x0; x0 = null; if (Math.abs(dx) > 40) { moved = true; go(sel + (dx < 0 ? 1 : -1)); setTimeout(() => (moved = false), 60); } });
-  stage.addEventListener("pointercancel", () => (x0 = null));
-  addEventListener("resize", () => items.length && layout());
-  if (!reduce) { let t = false; addEventListener("scroll", () => { if (t) return; t = true; requestAnimationFrame(() => { t = false; const y = scrollY; if (y < innerHeight) stage.style.setProperty("--py", y * 0.08 + "px"); }); }, { passive: true }); }
-}
+  root.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && sel) select("");
+    if (e.key === "ArrowLeft" && sel) { e.preventDefault(); step(-1); }
+    if (e.key === "ArrowRight" && sel) { e.preventDefault(); step(1); }
+  });
 
-let last = Date.now();
-document.addEventListener("mox:products", () => (last = Date.now()));
-document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - last > 60000 && window.MOX?.reload) { last = Date.now(); window.MOX.reload(); } });
+  // سحب بالفأرة على سطح المكتب (اللمس يتمرّر أصلياً)
+  let down = null;
+  track.addEventListener("pointerdown", (e) => { if (e.pointerType === "mouse" && e.button === 0) down = { x: e.clientX, left: track.scrollLeft, moved: false }; });
+  addEventListener("pointermove", (e) => {
+    if (!down) return;
+    const dx = e.clientX - down.x;
+    if (!down.moved && Math.abs(dx) > 6) { down.moved = true; track.classList.add("is-drag"); }
+    if (down.moved) track.scrollLeft = down.left - dx;
+  });
+  addEventListener("pointerup", () => { if (down?.moved) { dragged = true; setTimeout(() => (dragged = false), 0); } down = null; track.classList.remove("is-drag"); });
+
+  track.addEventListener("scroll", layoutNav, { passive: true });
+  let lastCols = cols();
+  addEventListener("resize", () => { layoutNav(); if (cols() !== lastCols) { lastCols = cols(); render(); } });
+
+  new MutationObserver(render).observe(grid, { childList: true });
+  render();
+}

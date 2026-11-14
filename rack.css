@@ -1,31 +1,83 @@
-/* MOX rack hero + calmer product cards */
-.rack-hero{direction:ltr;background:linear-gradient(#f6f5f2,#f0efeb);padding:18px 0 46px;overflow:hidden;position:relative}
-.rk-stage{--w:clamp(200px,24vw,330px);position:relative;top:var(--py,0);height:calc(var(--w) * 1.5 + 64px);outline:none;touch-action:pan-y}
-.rk-stage:focus-visible{outline:2px solid #000;outline-offset:-6px}
-.rk-stage::before{content:"";position:absolute;left:0;right:0;top:27px;height:8px;border-radius:4px;background:linear-gradient(#fafafa 0,#c9cbcd 38%,#74777a 62%,#cfd1d3 100%);box-shadow:0 6px 9px -2px rgba(0,0,0,.18)}
-.rk-item{position:absolute;left:50%;top:31px;width:var(--w);margin-left:calc(var(--w) / -2);padding:0;border:0;background:none;cursor:pointer;transform-origin:50% 0;mix-blend-mode:multiply;transition:transform .8s cubic-bezier(.22,1,.36,1),opacity .6s;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-.rk-item.rk-in{transition-delay:var(--d)}
-.rk-item:focus-visible{outline:2px solid #000;outline-offset:4px}
-.rk-sway{display:block;position:relative;isolation:isolate;transform-origin:50% 14px;animation:rk-idle 8s ease-in-out infinite alternate;animation-delay:calc(var(--d) * -3)}
-.rk-cut img{filter:drop-shadow(12px 16px 13px rgba(40,34,28,.3))}
-.rk-item[aria-current=true] .rk-sway{animation:rk-settle 2.4s cubic-bezier(.3,.6,.3,1) 1,rk-idle 8s ease-in-out 2.4s infinite alternate}
-.rk-item:not([aria-current=true]):hover .rk-sway{transform:translateY(-5px);transition:transform .35s}
-.rk-hanger{display:block;position:relative;z-index:2;width:56%;height:auto;margin:calc(var(--w) * -0.0677) auto calc(var(--w) * -0.14);filter:drop-shadow(0 3px 2px rgba(0,0,0,.28))}
-@keyframes rk-idle{from{transform:rotate(-.5deg)}to{transform:rotate(.5deg)}}
-@keyframes rk-settle{0%{transform:rotate(2.6deg)}22%{transform:rotate(-1.6deg)}44%{transform:rotate(1deg)}66%{transform:rotate(-.55deg)}100%{transform:rotate(0)}}
-.rk-item img,.rk-ph{display:block;position:relative;z-index:1;width:100%;aspect-ratio:3/4;object-fit:contain;object-position:top center;pointer-events:none}
-.rk-ph{display:grid;place-items:center;font-weight:800;letter-spacing:6px;color:#bbb}
-.rk-arrow{position:absolute;top:50%;z-index:30;width:40px;height:40px;border-radius:50%;border:1px solid #1a1a1a;background:transparent;color:#1a1a1a;display:grid;place-items:center;cursor:pointer;transition:background .25s,color .25s}
-.rk-arrow:hover,.rk-arrow:focus-visible{background:#1a1a1a;color:#fff}
-.rk-arrow svg{width:16px;height:16px}.rk-prev{left:3%}.rk-next{right:3%}
-.rk-info{direction:rtl;text-align:center;min-height:132px;margin-top:6px;transition:opacity .17s,transform .17s}
-.rk-info.swap{opacity:0;transform:translateY(6px)}
-.rk-info h1{margin:0;font-size:clamp(13px,1.6vw,16px);font-weight:800;letter-spacing:1.5px}
-.rk-info p{margin:6px 0 0;font-size:14px}#rk-note{min-height:18px;font-size:12px;color:#a33}
-.rk-open{margin-top:10px;padding:10px 26px;border:1px solid #1a1a1a;background:transparent;color:#1a1a1a;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:background .25s,color .25s}
-.rk-open:hover,.rk-open:focus-visible{background:#1a1a1a;color:#fff}
-@media(max-width:600px){.rk-arrow{top:auto;bottom:-6px}.rk-prev{left:22%}.rk-next{right:22%}}
-@media(prefers-reduced-motion:reduce){.rk-item,.rk-info{transition:none}.rk-sway,.rk-item[aria-current=true] .rk-sway{animation:none}.rk-stage{top:0}}
-main .product-grid .product-card{border:0;box-shadow:none;background:transparent;border-radius:0}
-main .product-grid .product-image{background:#f1efeb;border-radius:0}
-main .product-grid .product-image img{mix-blend-mode:multiply}
+/* MOX Rack: عرض المنتجات على شماعة. طبقة عرض فوق الشبكة الأصلية (التي تبقى في الصفحة مخفية لأن السلة والمخزون والخصم تعتمد عليها). */
+#product-grid.rk-src{display:none}
+
+.rk{--w-idle:max(104px,29vw);--w-sel:52vw;--w-dim:max(56px,15vw);--tw:0px;--ease:cubic-bezier(.2,.8,.2,1);
+  position:relative;margin:0 3% 60px;padding:6px 0 30px;border-radius:20px;overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 0%,#fafafa 0%,#f1f1f0 58%,#e8e8e6 100%);color:#000}
+@media(min-width:700px){.rk{--w-idle:clamp(130px,19vw,190px);--w-sel:min(38vw,340px);--w-dim:104px;margin:0 5% 70px}}
+@media(min-width:1100px){.rk{--w-idle:clamp(150px,13vw,200px);--w-sel:min(28vw,380px);margin:0 7% 80px}}
+
+/* المسار: يسار-يمين دائماً حتى يعمل التمرير بنفس الطريقة في كل اللغات */
+.rk-track{direction:ltr;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch;cursor:grab;outline-offset:-3px}
+.rk-track::-webkit-scrollbar{display:none}
+.rk-track.is-drag{cursor:grabbing;user-select:none}
+.rk-row{position:relative;display:flex;align-items:flex-start;justify-content:center;gap:0;width:max-content;min-width:100%;
+  padding:14px 12px 24px;transition:padding-inline .55s var(--ease)}
+.rk--sel .rk-row{justify-content:flex-start;padding-inline:max(12px,calc(50% - (var(--w-sel) + var(--tw-max,0px))/2 - 6px))}
+/* القضيب */
+.rk-row::before{content:"";position:absolute;inset-inline:0;top:14px;height:4px;border-radius:2px;
+  background:linear-gradient(#d9d9d8,#9a9a98 55%,#b9b9b7);box-shadow:0 2px 3px #0002}
+
+/* القطعة */
+.rk-slot{position:relative;flex:0 0 auto;display:flex;width:var(--w-idle);padding:0 6px;
+  transition:width .55s var(--ease)}
+.rk--sel .rk-slot{width:var(--w-dim)}
+.rk-img,.rk-hanger{transition:opacity .4s,filter .4s,transform .3s}
+.rk-img.rk-fade{opacity:0;transform:translateY(6px) scale(.985);transition:opacity .17s,transform .17s}
+.rk--sel .rk-slot:not(.is-sel) .rk-img{opacity:.5;filter:blur(1.2px)}.rk--sel .rk-slot:not(.is-sel) .rk-hanger{opacity:.45}
+.rk--sel .rk-slot.is-sel{width:calc(var(--w-sel) + var(--tw))}
+.rk-fig{position:relative;flex:1 1 0;min-width:0}
+.rk-hit{display:block;width:100%;padding:0;border:0;background:none;cursor:pointer;color:inherit;-webkit-tap-highlight-color:transparent}
+.rk-hit:focus-visible{outline:2px solid #000;outline-offset:4px;border-radius:8px}
+.rk-swing{display:block;transform-origin:50% 0;animation:rk-sway 1.7s var(--ease) backwards;animation-delay:calc(var(--i,0)*70ms)}
+.rk-hanger{display:block;width:40px;height:34px;margin:-1px auto 0}
+.rk-img,.rk-ph{display:block;width:100%;aspect-ratio:3/4;margin-top:-8px}
+.rk-img{object-fit:contain;mix-blend-mode:multiply}
+.rk-img.rk-cut{mix-blend-mode:normal;filter:drop-shadow(0 12px 12px #00000026)}
+.rk-fig:has(.rk-cut)::after{display:none}
+.rk-swing.rk-nudge{animation:rk-nudge .9s var(--ease)}
+@keyframes rk-nudge{0%{transform:rotate(0)}25%{transform:rotate(2.2deg)}55%{transform:rotate(-1.4deg)}80%{transform:rotate(.5deg)}100%{transform:rotate(0)}}
+.rk-ph{display:grid;place-items:center;font-size:34px;color:#b8b8b6}
+.rk-fig::after{content:"";position:absolute;left:12%;right:12%;bottom:-10px;height:14px;border-radius:50%;background:#0000001f;filter:blur(8px);pointer-events:none}
+.rk--sel .rk-slot:not(.is-sel) .rk-fig::after{opacity:.5}
+@media(hover:hover){.rk:not(.rk--sel) .rk-slot:hover .rk-swing{transform:rotate(1.6deg);transition:transform .5s var(--ease)}}
+@keyframes rk-sway{0%{transform:rotate(3deg)}30%{transform:rotate(-2deg)}55%{transform:rotate(1.1deg)}78%{transform:rotate(-.4deg)}100%{transform:rotate(0)}}
+
+/* بطاقات الألوان المعلّقة بخيوط */
+.rk-tags{position:relative;flex:0 0 0;width:0;visibility:hidden;opacity:0;transition:flex-basis .55s var(--ease),width .55s var(--ease),opacity .3s,visibility 0s .55s}
+.rk-slot.is-sel .rk-tags{flex-basis:var(--tw);width:var(--tw);visibility:visible;opacity:1;transition:flex-basis .55s var(--ease),width .55s var(--ease),opacity .4s .3s,visibility 0s}
+.rk-tag{position:absolute;top:var(--d);left:calc(10px + var(--c)*30px + var(--r,0)*15px);width:28px;height:42px;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.rk-tag:focus-visible{outline:2px solid #000;outline-offset:2px;border-radius:6px}
+.rk-str{position:absolute;left:50%;top:calc(var(--d)*-1);width:1px;height:var(--d);background:#7b7b79;pointer-events:none}
+.rk-card{position:absolute;left:1px;top:0;width:26px;height:38px;border-radius:5px;border:1px solid #0003;background:var(--cc,#fff);
+  box-shadow:0 3px 7px #0002;display:grid;place-items:end center;padding-bottom:3px;font-size:9px;font-weight:700;color:#000;overflow:hidden;
+  transform-origin:50% 0;transition:transform .25s var(--ease),box-shadow .25s}
+.rk-card::before{content:"";position:absolute;top:3px;left:50%;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:#efefed;box-shadow:inset 0 0 0 1px #0003}
+.rk-tag.on .rk-card{outline:2px solid #000;outline-offset:2px;transform:translateY(5px);box-shadow:0 8px 12px #0003}
+
+/* الأسهم */
+.rk-nav{position:absolute;top:34%;z-index:3;width:38px;height:38px;border-radius:50%;border:1px solid #0002;background:#fffffff0;color:#000;display:grid;place-items:center;padding:0;cursor:pointer;box-shadow:0 4px 12px #0001;transition:transform .2s,background .2s,opacity .3s}
+.rk-nav svg{width:16px;height:16px}
+.rk-nav:hover{background:#000;color:#fff}.rk-nav:active{transform:scale(.94)}
+.rk-prev{left:8px}.rk-next{right:8px}
+.rk-nav[hidden]{display:none}
+@media(min-width:700px){.rk-nav{width:44px;height:44px}.rk-prev{left:16px}.rk-next{right:16px}}
+
+/* معلومات القطعة */
+.rk-info{display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 18px 0;text-align:center;min-height:62px}
+.rk-hint{margin:0;font-size:12px;color:#6b6b6b;letter-spacing:.3px}
+.rk-name{margin:0;font-size:15px;font-weight:700;letter-spacing:1px;animation:rk-in .45s var(--ease) backwards}
+.rk-price{margin:0;font-size:14px;color:#333;animation:rk-in .45s .05s var(--ease) backwards}
+.rk-color{margin:0;font-size:12px;color:#555;min-height:18px}
+.rk-color b{font-weight:700;color:#000}
+.rk-out{margin:0;font-size:12px;font-weight:700;color:#d71920}
+.rk-more{margin-top:4px;min-width:200px;height:46px;padding:0 26px;border:0;border-radius:10px;background:#000;color:#fff;font-weight:700;font-size:13px;letter-spacing:.8px;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.rk-more:hover{transform:translateY(-2px);box-shadow:0 10px 24px #0003}
+.rk-more:focus-visible{outline:2px solid #000;outline-offset:3px}
+.rk-empty{width:100%;padding:44px 16px 30px;text-align:center;color:#6b6b6b;font-size:14px}
+@keyframes rk-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+@media(prefers-reduced-motion:reduce){
+  .rk-swing,.rk-swing.rk-nudge,.rk-name,.rk-price{animation:none}
+  .rk-slot,.rk-row,.rk-tags,.rk-card,.rk-nav,.rk-more{transition:none}
+}

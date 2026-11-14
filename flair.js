@@ -3,7 +3,7 @@ const reduce = matchMedia("(prefers-reduced-motion:reduce)").matches;
 const bar = document.createElement("div"); bar.className = "fx-progress"; document.body.append(bar);
 const onScroll = () => { const h = document.documentElement; const m = h.scrollHeight - h.clientHeight; bar.style.width = (m > 0 ? (h.scrollTop / m) * 100 : 0) + "%"; };
 addEventListener("scroll", onScroll, { passive: true }); onScroll();
-const hero = document.querySelector(".hero,.rack-hero");
+const hero = document.querySelector(".hero");
 if (hero) { const items = ["الدفع عند الاستلام", "توصيل إلى مختلف ولايات الجزائر", "MOX — WEAR YOUR IDENTITY", "قطع مختارة بعناية"];
   const row = items.map((t) => `<span>${t}</span><span><b>✦</b></span>`).join(""), m = document.createElement("div");
   m.className = "fx-marquee"; m.setAttribute("aria-hidden", "true"); m.innerHTML = `<div>${row}${row}${row}${row}</div>`; hero.after(m); }
