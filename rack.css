@@ -1,13 +1,19 @@
 /* MOX rack hero + calmer product cards */
-.rack-hero{direction:ltr;background:#fff;padding:18px 0 46px;overflow:hidden;position:relative}
-.rk-stage{--w:clamp(210px,26vw,360px);position:relative;height:clamp(400px,66svh,660px);outline:none;touch-action:pan-y;transform:translate3d(0,var(--py,0),0)}
+.rack-hero{direction:ltr;background:linear-gradient(#f6f5f2,#f0efeb);padding:18px 0 46px;overflow:hidden;position:relative}
+.rk-stage{--w:clamp(200px,24vw,330px);position:relative;top:var(--py,0);height:calc(var(--w) * 1.5 + 64px);outline:none;touch-action:pan-y}
 .rk-stage:focus-visible{outline:2px solid #000;outline-offset:-6px}
-.rk-stage::before{content:"";position:absolute;left:3%;right:3%;top:30px;height:2px;background:#1a1a1a;border-radius:2px;opacity:.85}
-.rk-item{position:absolute;left:50%;top:30px;width:var(--w);margin-left:calc(var(--w) / -2);padding:0;border:0;background:none;cursor:pointer;transform-origin:50% 0;transition:transform .8s cubic-bezier(.22,1,.36,1),opacity .6s;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;color:#1a1a1a}
+.rk-stage::before{content:"";position:absolute;left:0;right:0;top:27px;height:8px;border-radius:4px;background:linear-gradient(#fafafa 0,#c9cbcd 38%,#74777a 62%,#cfd1d3 100%);box-shadow:0 6px 9px -2px rgba(0,0,0,.18)}
+.rk-item{position:absolute;left:50%;top:31px;width:var(--w);margin-left:calc(var(--w) / -2);padding:0;border:0;background:none;cursor:pointer;transform-origin:50% 0;mix-blend-mode:multiply;transition:transform .8s cubic-bezier(.22,1,.36,1),opacity .6s;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .rk-item.rk-in{transition-delay:var(--d)}
 .rk-item:focus-visible{outline:2px solid #000;outline-offset:4px}
-.rk-hanger{display:block;width:64px;height:auto;margin:-18px auto -9px;position:relative;z-index:1}
-.rk-item img,.rk-ph{display:block;width:100%;aspect-ratio:3/4;object-fit:contain;object-position:top;mix-blend-mode:multiply;pointer-events:none}
+.rk-sway{display:block;position:relative;isolation:isolate;transform-origin:50% 14px;animation:rk-idle 8s ease-in-out infinite alternate;animation-delay:calc(var(--d) * -3)}
+.rk-cut img{filter:drop-shadow(12px 16px 13px rgba(40,34,28,.3))}
+.rk-item[aria-current=true] .rk-sway{animation:rk-settle 2.4s cubic-bezier(.3,.6,.3,1) 1,rk-idle 8s ease-in-out 2.4s infinite alternate}
+.rk-item:not([aria-current=true]):hover .rk-sway{transform:translateY(-5px);transition:transform .35s}
+.rk-hanger{display:block;position:relative;z-index:2;width:56%;height:auto;margin:calc(var(--w) * -0.0677) auto calc(var(--w) * -0.14);filter:drop-shadow(0 3px 2px rgba(0,0,0,.28))}
+@keyframes rk-idle{from{transform:rotate(-.5deg)}to{transform:rotate(.5deg)}}
+@keyframes rk-settle{0%{transform:rotate(2.6deg)}22%{transform:rotate(-1.6deg)}44%{transform:rotate(1deg)}66%{transform:rotate(-.55deg)}100%{transform:rotate(0)}}
+.rk-item img,.rk-ph{display:block;position:relative;z-index:1;width:100%;aspect-ratio:3/4;object-fit:contain;object-position:top center;pointer-events:none}
 .rk-ph{display:grid;place-items:center;font-weight:800;letter-spacing:6px;color:#bbb}
 .rk-arrow{position:absolute;top:50%;z-index:30;width:40px;height:40px;border-radius:50%;border:1px solid #1a1a1a;background:transparent;color:#1a1a1a;display:grid;place-items:center;cursor:pointer;transition:background .25s,color .25s}
 .rk-arrow:hover,.rk-arrow:focus-visible{background:#1a1a1a;color:#fff}
@@ -18,8 +24,8 @@
 .rk-info p{margin:6px 0 0;font-size:14px}#rk-note{min-height:18px;font-size:12px;color:#a33}
 .rk-open{margin-top:10px;padding:10px 26px;border:1px solid #1a1a1a;background:transparent;color:#1a1a1a;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:background .25s,color .25s}
 .rk-open:hover,.rk-open:focus-visible{background:#1a1a1a;color:#fff}
-@media(max-width:600px){.rk-arrow{top:auto;bottom:-6px}.rk-prev{left:22%}.rk-next{right:22%}.rk-stage{height:clamp(360px,58svh,480px)}}
-@media(prefers-reduced-motion:reduce){.rk-item,.rk-info{transition:none}.rk-stage{transform:none}}
+@media(max-width:600px){.rk-arrow{top:auto;bottom:-6px}.rk-prev{left:22%}.rk-next{right:22%}}
+@media(prefers-reduced-motion:reduce){.rk-item,.rk-info{transition:none}.rk-sway,.rk-item[aria-current=true] .rk-sway{animation:none}.rk-stage{top:0}}
 main .product-grid .product-card{border:0;box-shadow:none;background:transparent;border-radius:0}
 main .product-grid .product-image{background:#f1efeb;border-radius:0}
 main .product-grid .product-image img{mix-blend-mode:multiply}

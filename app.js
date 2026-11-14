@@ -162,7 +162,7 @@ $("#checkout-form").addEventListener("submit",async e=>{
  finally{btn.disabled=false;btn.textContent="تأكيد الطلب"}
 });
 $("#wilaya").addEventListener("change",updateShipping);$("#delivery-type").addEventListener("change",updateShipping);
-window.MOX={cartLines,products:()=>products,unitPrice,maxFor,productQty,money,open(id){const sel=()=>document.querySelector(`.product-card[data-pid="${CSS.escape(String(id))}"]`);let c=sel();if(!c){selectedCategory="الكل";$("#search").value="";renderCategories();renderProducts();c=sel()}const p=prodOf(id);if(c&&p){trackViewContent(p);openPDP({product:p,card:c,chart:charts[p.id]||[],supabase})}}};
+window.MOX={cartLines,products:()=>products,unitPrice,maxFor,productQty,money,reload:()=>loadProducts(),open(id){const sel=()=>document.querySelector(`.product-card[data-pid="${CSS.escape(String(id))}"]`);let c=sel();if(!c){selectedCategory="الكل";$("#search").value="";renderCategories();renderProducts();c=sel()}const p=prodOf(id);if(c&&p){trackViewContent(p);openPDP({product:p,card:c,chart:charts[p.id]||[],supabase})}}};
 renderCart();loadProducts();loadRates();
 
 async function loadHeroVideos(){
