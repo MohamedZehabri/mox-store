@@ -12,11 +12,20 @@ function ensure() {
 }
 function close() { if (!root) return; root.classList.remove("show"); document.body.style.overflow = ""; }
 
+// تبديل صورة صفحة المنتج عند اختيار لون له صورة خاصة
+function swapImg(p, color) {
+  const u = (p.color_images || {})[color] || p.image_url, im = root.querySelector(".pdp-img img"); if (!u || !im || im.dataset.u === u) return;
+  im.dataset.u = u; const cu = window.MOX_CUT?.done?.get(u), want = cu || u, pre = new Image();
+  im.style.transition = "opacity .2s"; im.style.opacity = 0;
+  pre.onload = pre.onerror = () => { im.src = want; im.style.objectFit = cu ? "contain" : ""; im.style.opacity = 1; };
+  pre.src = want;
+}
+
 export function openPDP({ product: p, card, chart, supabase }) {
   ensure(); const sizes = p.sizes || [], colors = p.colors || [], out = p.stock != null && Number(p.stock) <= 0;
   const q = (s) => card.querySelector(s), maxQty = Number(q("[data-qty]")?.max) || 20;
   let size = "", color = "", qty = 1;
-  root.innerHTML = `<button class="pdp-x" aria-label="إغلاق">✕</button><div class="pdp"><div class="pdp-img">${p.image_url ? `<img src="${esc(p.image_url)}" alt="${esc(p.name)}">` : ""}</div><div class="pdp-info">
+  root.innerHTML = `<button class="pdp-x" aria-label="إغلاق">✕</button><div class="pdp"><div class="pdp-img">${p.image_url ? (() => { const cu = window.MOX_CUT?.done?.get(p.image_url); return `<img src="${esc(cu || p.image_url)}" alt="${esc(p.name)}"${cu ? ' style="object-fit:contain"' : ""}>`; })() : ""}</div><div class="pdp-info">
     <h2>${esc(p.name)}</h2><p class="pdp-price">${money(p.price)}</p>
     ${p.discount_enabled && Number(p.discount_step) > 0 ? `<p class="pdp-disc">خصم ${Number(p.discount_step)}٪ عن كل قطعة إضافية (حتى ${Number(p.discount_max)}٪)</p>` : ""}
     ${colors.length ? `<div class="pdp-sec"><p class="pdp-lbl">اللون <span id="pdp-cn">اختر</span></p><div class="pdp-sw">${colors.map((c) => { const h = HEX[String(c).trim().toLowerCase()] || HEX[String(c).trim()]; return h ? `<button data-c="${esc(c)}" style="background:${h}" aria-label="${esc(c)}"></button>` : `<button class="pdp-txt" data-c="${esc(c)}">${esc(c)}</button>`; }).join("")}</div></div>` : ""}
@@ -33,7 +42,7 @@ export function openPDP({ product: p, card, chart, supabase }) {
     const t = e.target;
     if (t.closest(".pdp-x")) return close();
     const s = t.closest("[data-s]"), c = t.closest("[data-c]");
-    if (s) size = s.dataset.s; if (c) color = c.dataset.c;
+    if (s) size = s.dataset.s; if (c) color = c.dataset.c; if (c) swapImg(p, color);
     if (t.closest("#pdp-m")) qty = Math.max(1, qty - 1); if (t.closest("#pdp-p")) qty = Math.min(maxQty, qty + 1);
     if (t.closest("#pdp-fit")) openSmartFit({ product: p, chart, card, supabase }), watchSize();
     if (t.closest("#pdp-add")) {

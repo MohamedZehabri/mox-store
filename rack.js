@@ -1,6 +1,7 @@
 // MOX Rack: يعرض منتجات المتجر الحقيقية على شماعة. لا يغيّر منطق السلة أو المخزون أو الخصم أو Meta:
 // يقرأ بطاقات #product-grid التي يرسمها app.js (فتبقى البحث والتصنيفات كما هي)، وعند طلب التفاصيل يضغط على البطاقة الأصلية
 // تماماً كما يفعل assistant.js وsmartcart.js، فتفتح صفحة المنتج (PDP) الموجودة.
+import { cutout } from "./cutout.js";
 const grid = document.querySelector("#product-grid");
 if (grid) {
   const reduce = matchMedia("(prefers-reduced-motion:reduce)").matches;
@@ -20,6 +21,12 @@ if (grid) {
 
   let items = [], sel = "", raf = 0;
   const colorOf = {};
+  const done = window.MOX_CUT.done;
+  const cutUrl = (u) => done.get(u) || u;
+  // الصورة المعروضة: صورة اللون المختار إن وُجدت، وإلا الصورة الرئيسية، وإلا أول صورة لون
+  const imgFor = (p, color) => (color && (p.color_images || {})[color]) || p.image_url || Object.values(p.color_images || {})[0] || "";
+  const cutIt = (img, url) => { cutout(url).then((r) => { if (r && img.isConnected && img.dataset.src === url) { img.src = r.url; img.classList.add("rk-cut"); } }); };
+  const nudge = (slot) => { const s = slot?.querySelector(".rk-swing"); if (!s || reduce) return; s.classList.remove("rk-nudge"); void s.offsetWidth; s.classList.add("rk-nudge"); };
   const cols = () => (innerWidth < 700 ? 3 : 4);
   const slotOf = (id) => [...row.children].find((s) => s.dataset.id === id);
   const cardOf = (id) => grid.querySelector(`.product-card[data-pid="${CSS.escape(String(id))}"]`);
@@ -35,7 +42,7 @@ if (grid) {
   function slotHTML(p, i) {
     const colors = p.colors || [], n = cols();
     const tw = colors.length ? Math.min(colors.length, n) * 30 + 14 + (colors.length > n ? 15 : 0) : 0;
-    return `<div class="rk-slot" data-id="${esc(p.id)}" style="--i:${i};--tw:${tw}px"><div class="rk-fig"><button type="button" class="rk-hit" aria-label="${esc(p.name)}" aria-pressed="false"><span class="rk-swing">${HANGER}${p.image_url ? `<img class="rk-img" src="${esc(p.image_url)}" alt="${esc(p.name)}" loading="lazy" draggable="false">` : '<span class="rk-ph">✧</span>'}</span></button></div>${colors.length ? `<div class="rk-tags" role="group" aria-label="ألوان القطعة">${tagsHTML(colors)}</div>` : ""}</div>`;
+    return `<div class="rk-slot" data-id="${esc(p.id)}" style="--i:${i};--tw:${tw}px"><div class="rk-fig"><button type="button" class="rk-hit" aria-label="${esc(p.name)}" aria-pressed="false"><span class="rk-swing">${HANGER}${imgFor(p, colorOf[p.id]) ? (u => `<img class="rk-img${done.has(u) ? " rk-cut" : ""}" src="${esc(cutUrl(u))}" data-src="${esc(u)}" alt="${esc(p.name)}" draggable="false">`)(imgFor(p, colorOf[p.id])) : '<span class="rk-ph">✧</span>'}</span></button></div>${colors.length ? `<div class="rk-tags" role="group" aria-label="ألوان القطعة">${tagsHTML(colors)}</div>` : ""}</div>`;
   }
 
   function render() {
@@ -50,7 +57,31 @@ if (grid) {
       row.innerHTML = items.map(slotHTML).join("");
     }
     root.style.setProperty("--tw-max", Math.max(0, ...items.map((p) => ((p.colors || []).length ? Math.min(p.colors.length, cols()) * 30 + 14 + (p.colors.length > cols() ? 15 : 0) : 0))) + "px");
+    row.querySelectorAll(".rk-img:not(.rk-cut)").forEach((im) => cutIt(im, im.dataset.src));
     paint(false); layoutNav();
+  }
+
+  // تبديل صورة القطعة عند تغيّر اللون: تتلاشى الصورة، تُستبدل، ثم تظهر مع اهتزاز خفيف على الشماعة
+  function swapImage(id) {
+    const p = items.find((x) => String(x.id) === String(id)), slot = slotOf(id), img = slot?.querySelector(".rk-img");
+    if (!p || !img) return;
+    const want = imgFor(p, colorOf[id]); if (!want || img.dataset.src === want) return;
+    const token = (img._t = (img._t || 0) + 1);
+    const go = () => {
+      if (img._t !== token) return;
+      const src = cutUrl(want), pre = new Image();
+      pre.onload = pre.onerror = () => {
+        if (img._t !== token) return;
+        img.classList.add("rk-fade");
+        setTimeout(() => {
+          if (img._t !== token) return;
+          img.dataset.src = want; img.src = src; img.classList.toggle("rk-cut", done.has(want));
+          requestAnimationFrame(() => img.classList.remove("rk-fade")); nudge(slot);
+        }, reduce ? 0 : 170);
+      };
+      pre.src = src;
+    };
+    Promise.race([cutout(want), new Promise((r) => setTimeout(r, 1500))]).then(go);
   }
 
   function paint(scroll) {
@@ -94,7 +125,11 @@ if (grid) {
   }
   ["touchstart", "wheel", "pointerdown"].forEach((ev) => track.addEventListener(ev, () => cancelAnimationFrame(raf), { passive: true }));
 
-  function select(id) { sel = id ? String(id) : ""; paint(true); }
+  function select(id) {
+    sel = id ? String(id) : ""; paint(true);
+    const p = items.find((x) => String(x.id) === sel);
+    if (p) { nudge(slotOf(sel)); Object.values(p.color_images || {}).forEach((u) => cutout(u)); } // تجهيز صور الألوان مسبقاً
+  }
   function step(dir) {
     if (sel) { const i = items.findIndex((p) => String(p.id) === sel); select(items[(i + dir + items.length) % items.length].id); }
     else track.scrollBy({ left: dir * track.clientWidth * 0.8, behavior: reduce ? "auto" : "smooth" });
@@ -114,7 +149,7 @@ if (grid) {
     if (t.closest(".rk-next")) return step(1);
     if (t.closest(".rk-more")) return openDetails();
     const tag = t.closest(".rk-tag");
-    if (tag) { const id = tag.closest(".rk-slot").dataset.id; colorOf[id] = colorOf[id] === tag.dataset.color ? "" : tag.dataset.color; return paint(false); }
+    if (tag) { const id = tag.closest(".rk-slot").dataset.id; colorOf[id] = colorOf[id] === tag.dataset.color ? "" : tag.dataset.color; paint(false); return swapImage(id); }
     const hit = t.closest(".rk-hit");
     if (hit) { const id = hit.closest(".rk-slot").dataset.id; return id === sel ? openDetails() : select(id); }
     if (sel && (t === track || t === row || t === root)) select("");

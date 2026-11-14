@@ -22,7 +22,8 @@
 .rk-slot{position:relative;flex:0 0 auto;display:flex;width:var(--w-idle);padding:0 6px;
   transition:width .55s var(--ease)}
 .rk--sel .rk-slot{width:var(--w-dim)}
-.rk-img,.rk-hanger{transition:opacity .4s,filter .4s}
+.rk-img,.rk-hanger{transition:opacity .4s,filter .4s,transform .3s}
+.rk-img.rk-fade{opacity:0;transform:translateY(6px) scale(.985);transition:opacity .17s,transform .17s}
 .rk--sel .rk-slot:not(.is-sel) .rk-img{opacity:.5;filter:blur(1.2px)}.rk--sel .rk-slot:not(.is-sel) .rk-hanger{opacity:.45}
 .rk--sel .rk-slot.is-sel{width:calc(var(--w-sel) + var(--tw))}
 .rk-fig{position:relative;flex:1 1 0;min-width:0}
@@ -32,6 +33,10 @@
 .rk-hanger{display:block;width:40px;height:34px;margin:-1px auto 0}
 .rk-img,.rk-ph{display:block;width:100%;aspect-ratio:3/4;margin-top:-8px}
 .rk-img{object-fit:contain;mix-blend-mode:multiply}
+.rk-img.rk-cut{mix-blend-mode:normal;filter:drop-shadow(0 12px 12px #00000026)}
+.rk-fig:has(.rk-cut)::after{display:none}
+.rk-swing.rk-nudge{animation:rk-nudge .9s var(--ease)}
+@keyframes rk-nudge{0%{transform:rotate(0)}25%{transform:rotate(2.2deg)}55%{transform:rotate(-1.4deg)}80%{transform:rotate(.5deg)}100%{transform:rotate(0)}}
 .rk-ph{display:grid;place-items:center;font-size:34px;color:#b8b8b6}
 .rk-fig::after{content:"";position:absolute;left:12%;right:12%;bottom:-10px;height:14px;border-radius:50%;background:#0000001f;filter:blur(8px);pointer-events:none}
 .rk--sel .rk-slot:not(.is-sel) .rk-fig::after{opacity:.5}
@@ -73,6 +78,6 @@
 @keyframes rk-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
 @media(prefers-reduced-motion:reduce){
-  .rk-swing,.rk-name,.rk-price{animation:none}
+  .rk-swing,.rk-swing.rk-nudge,.rk-name,.rk-price{animation:none}
   .rk-slot,.rk-row,.rk-tags,.rk-card,.rk-nav,.rk-more{transition:none}
 }
